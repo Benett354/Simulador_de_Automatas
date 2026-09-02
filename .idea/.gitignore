@@ -1,5 +1,13 @@
 # Default ignored files
 /shelf/
-/workspace.xml
-# Editor-based HTTP Client requests
-/httpRequests/
+
+# Configuración del IDE
+.idea/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+
+# Entornos virtuales
+venv/
+.venv/
