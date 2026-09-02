@@ -1,8 +1,10 @@
 from automata import Automata
+from simulador import Simulador
 
 
 
 def main():
+
 
     automata = Automata("AFD")
 
@@ -14,10 +16,12 @@ def main():
     automata.agregar_estado("q2")
 
 
+
     # Alfabeto
 
     automata.agregar_simbolo("0")
     automata.agregar_simbolo("1")
+
 
 
     # Inicial
@@ -25,18 +29,38 @@ def main():
     automata.establecer_estado_inicial("q0")
 
 
+
     # Final
 
     automata.agregar_estado_final("q2")
 
 
+
     # Transiciones
 
     automata.agregar_transicion("q0","0","q1")
+
     automata.agregar_transicion("q1","1","q2")
 
 
-    automata.mostrar()
+
+    simulador = Simulador(automata)
+
+
+
+    cadena = "01"
+
+
+    aceptada, recorrido, mensaje = simulador.simular_afd(cadena)
+
+
+
+    print("\nCadena:", cadena)
+
+    print("Recorrido:", recorrido)
+
+    print("Resultado:", mensaje)
+
 
 
 
