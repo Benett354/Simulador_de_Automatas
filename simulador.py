@@ -13,19 +13,20 @@ class Simulador:
 
     def simular_afd(self, cadena):
 
+
         estado_actual = self.automata.estado_inicial
 
 
         recorrido = []
 
-        recorrido.append(estado_actual)
+        recorrido.append(
+            f"Inicio: {estado_actual}"
+        )
 
 
 
         for simbolo in cadena:
 
-
-            # Validar símbolo
 
             if simbolo not in self.automata.alfabeto:
 
@@ -33,37 +34,53 @@ class Simulador:
 
 
 
-            transicion = self.automata.obtener_transicion(
+            recorrido.append(
+                f"Leer símbolo: {simbolo}"
+            )
+
+
+
+            estado_actual = self.automata.obtener_transicion(
                 estado_actual,
                 simbolo
             )
 
 
-            # No existe transición
 
-            if transicion is None:
+            if estado_actual is None:
 
-                return False, recorrido, "No existe transición"
+                recorrido.append(
+                    "No existe transición"
+                )
 
-
-
-            estado_actual = transicion
-
-
-            recorrido.append(estado_actual)
+                return False, recorrido, "Cadena rechazada"
 
 
 
-        # Verificar aceptación
+            recorrido.append(
+                f"Nuevo estado: {estado_actual}"
+            )
+
+
 
         if estado_actual in self.automata.estados_finales:
+
+
+            recorrido.append(
+                "Estado final encontrado"
+            )
+
 
             return True, recorrido, "Cadena aceptada"
 
 
-        else:
 
-            return False, recorrido, "Cadena rechazada"
+        recorrido.append(
+            "No es estado final"
+        )
+
+
+        return False, recorrido, "Cadena rechazada"
 
 
 
@@ -94,6 +111,7 @@ class Simulador:
                 estado,
                 "ε"
             )
+
 
 
             if transiciones:
@@ -134,7 +152,10 @@ class Simulador:
 
         recorrido = []
 
-        recorrido.append(estados_actuales.copy())
+
+        recorrido.append(
+            f"Inicio: {estados_actuales}"
+        )
 
 
 
@@ -148,12 +169,17 @@ class Simulador:
 
 
 
+            recorrido.append(
+                f"Leer símbolo: {simbolo}"
+            )
+
+
+
             nuevos_estados = set()
 
 
 
             for estado in estados_actuales:
-
 
 
                 transiciones = self.automata.obtener_transicion(
@@ -176,26 +202,37 @@ class Simulador:
 
 
 
-            recorrido.append(estados_actuales.copy())
+            recorrido.append(
+                f"Estados actuales: {estados_actuales}"
+            )
 
 
 
             if not estados_actuales:
 
 
-                return False, recorrido, "No existen caminos"
+                return False, recorrido, "Cadena rechazada"
 
 
-
-        # Revisar estados finales
 
         for estado in estados_actuales:
 
 
             if estado in self.automata.estados_finales:
 
+
+                recorrido.append(
+                    "Estado final encontrado"
+                )
+
+
                 return True, recorrido, "Cadena aceptada"
 
+
+
+        recorrido.append(
+            "No hay estados finales"
+        )
 
 
         return False, recorrido, "Cadena rechazada"
