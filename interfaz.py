@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
+
 
 
 class Interfaz:
@@ -27,8 +28,10 @@ class Interfaz:
         )
 
 
-        # Guardará el autómata creado
+        # Guarda el autómata creado
+
         self.automata_actual = None
+
 
 
         self.crear_menu()
@@ -39,7 +42,7 @@ class Interfaz:
 
 
     # ---------------------------------
-    # Crear menú superior
+    # Menú superior
     # ---------------------------------
 
     def crear_menu(self):
@@ -50,10 +53,12 @@ class Interfaz:
         )
 
 
+
         archivo = tk.Menu(
             barra_menu,
             tearoff=0
         )
+
 
 
         archivo.add_command(
@@ -65,10 +70,12 @@ class Interfaz:
         archivo.add_separator()
 
 
+
         archivo.add_command(
             label="Salir",
             command=self.ventana.destroy
         )
+
 
 
         barra_menu.add_cascade(
@@ -84,6 +91,7 @@ class Interfaz:
         )
 
 
+
         herramientas.add_command(
             label="Conversión AFN → AFD"
         )
@@ -92,6 +100,7 @@ class Interfaz:
         herramientas.add_command(
             label="Minimización AFD"
         )
+
 
 
         barra_menu.add_cascade(
@@ -156,7 +165,6 @@ class Interfaz:
         # Panel izquierdo
         # -----------------------------
 
-
         panel_control = ttk.LabelFrame(
             contenedor,
             text="Control del Autómata"
@@ -171,60 +179,68 @@ class Interfaz:
 
 
 
-        boton_crear = ttk.Button(
+        ttk.Button(
             panel_control,
             text="Crear Autómata",
             width=25,
             command=self.abrir_formulario
-        )
-
-
-        boton_crear.pack(
+        ).pack(
             pady=10,
             padx=15
         )
 
 
 
-        boton_estados = ttk.Button(
-            panel_control,
-            text="Estados",
-            width=25
-        )
-
-
-        boton_estados.pack(
-            pady=10,
-            padx=15
-        )
-
-
-
-        boton_transiciones = ttk.Button(
+        ttk.Button(
             panel_control,
             text="Transiciones",
             width=25,
             command=self.abrir_transiciones
-        )
-
-
-        boton_transiciones.pack(
+        ).pack(
             pady=10,
             padx=15
         )
 
 
 
-        boton_simular = ttk.Button(
+        ttk.Button(
             panel_control,
             text="Simular Cadena",
+            width=25,
+            command=self.simular_cadena
+        ).pack(
+            pady=10,
+            padx=15
+        )
+
+
+
+        # -----------------------------
+        # Entrada cadena
+        # -----------------------------
+
+        marco_cadena = ttk.LabelFrame(
+            panel_control,
+            text="Cadena"
+        )
+
+
+        marco_cadena.pack(
+            pady=20,
+            padx=10
+        )
+
+
+
+        self.entrada_cadena = tk.Entry(
+            marco_cadena,
             width=25
         )
 
 
-        boton_simular.pack(
-            pady=10,
-            padx=15
+        self.entrada_cadena.pack(
+            padx=10,
+            pady=10
         )
 
 
@@ -232,7 +248,6 @@ class Interfaz:
         # -----------------------------
         # Panel derecho
         # -----------------------------
-
 
         panel_resultado = ttk.LabelFrame(
             contenedor,
@@ -271,13 +286,14 @@ class Interfaz:
 
 
     # ---------------------------------
-    # Abrir formulario de creación
+    # Abrir formulario
     # ---------------------------------
 
     def abrir_formulario(self):
 
 
         from formulario import FormularioAutomata
+
 
 
         FormularioAutomata(
@@ -288,7 +304,7 @@ class Interfaz:
 
 
     # ---------------------------------
-    # Recibir automata creado
+    # Recibir autómata
     # ---------------------------------
 
     def recibir_automata(self, automata):
@@ -324,25 +340,19 @@ class Interfaz:
 
         self.area_texto.insert(
             "end",
-            f"Estado inicial: {automata.estado_inicial}\n"
+            f"Inicial: {automata.estado_inicial}\n"
         )
 
 
         self.area_texto.insert(
             "end",
-            f"Estados finales: {automata.estados_finales}\n"
-        )
-
-
-        self.area_texto.insert(
-            "end",
-            "============================\n"
+            f"Finales: {automata.estados_finales}\n"
         )
 
 
 
     # ---------------------------------
-    # Abrir editor de transiciones
+    # Abrir transiciones
     # ---------------------------------
 
     def abrir_transiciones(self):
@@ -351,12 +361,9 @@ class Interfaz:
         if self.automata_actual is None:
 
 
-            from tkinter import messagebox
-
-
             messagebox.showwarning(
                 "Advertencia",
-                "Primero debe crear un autómata"
+                "Primero cree un autómata"
             )
 
 
@@ -376,7 +383,113 @@ class Interfaz:
 
 
     # ---------------------------------
-    # Ejecutar aplicación
+    # Simular cadena
+    # ---------------------------------
+
+    def simular_cadena(self):
+
+
+        if self.automata_actual is None:
+
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Primero cree un autómata"
+            )
+
+
+            return
+
+
+
+        cadena = self.entrada_cadena.get()
+
+
+
+        if cadena == "":
+
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Ingrese una cadena"
+            )
+
+
+            return
+
+
+
+        from simulador import Simulador
+
+
+
+        simulador = Simulador(
+            self.automata_actual
+        )
+
+
+
+        if self.automata_actual.tipo == "AFD":
+
+
+            aceptada, recorrido, resultado = simulador.simular_afd(
+                cadena
+            )
+
+
+        else:
+
+
+            aceptada, recorrido, resultado = simulador.simular_afn(
+                cadena
+            )
+
+
+
+        self.area_texto.insert(
+            "end",
+            "\n\n===== SIMULACIÓN =====\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            f"Cadena: {cadena}\n\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            "Recorrido:\n"
+        )
+
+
+
+        for paso in recorrido:
+
+
+            self.area_texto.insert(
+                "end",
+                str(paso) + "\n"
+            )
+
+
+
+        self.area_texto.insert(
+            "end",
+            "\nResultado:\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            resultado + "\n"
+        )
+
+
+
+    # ---------------------------------
+    # Ejecutar
     # ---------------------------------
 
     def ejecutar(self):
