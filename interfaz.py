@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 
 
-
 class Interfaz:
 
 
@@ -26,6 +25,10 @@ class Interfaz:
             900,
             600
         )
+
+
+        # Guardará el autómata creado
+        self.automata_actual = None
 
 
         self.crear_menu()
@@ -54,7 +57,8 @@ class Interfaz:
 
 
         archivo.add_command(
-            label="Nuevo autómata"
+            label="Nuevo autómata",
+            command=self.abrir_formulario
         )
 
 
@@ -167,31 +171,60 @@ class Interfaz:
 
 
 
-        botones = [
-
-            "Crear Autómata",
-            "Estados",
-            "Transiciones",
-            "Simular Cadena"
-
-        ]
+        boton_crear = ttk.Button(
+            panel_control,
+            text="Crear Autómata",
+            width=25,
+            command=self.abrir_formulario
+        )
 
 
-
-        for texto in botones:
-
-
-            boton = ttk.Button(
-                panel_control,
-                text=texto,
-                width=25
-            )
+        boton_crear.pack(
+            pady=10,
+            padx=15
+        )
 
 
-            boton.pack(
-                pady=10,
-                padx=15
-            )
+
+        boton_estados = ttk.Button(
+            panel_control,
+            text="Estados",
+            width=25
+        )
+
+
+        boton_estados.pack(
+            pady=10,
+            padx=15
+        )
+
+
+
+        boton_transiciones = ttk.Button(
+            panel_control,
+            text="Transiciones",
+            width=25
+        )
+
+
+        boton_transiciones.pack(
+            pady=10,
+            padx=15
+        )
+
+
+
+        boton_simular = ttk.Button(
+            panel_control,
+            text="Simular Cadena",
+            width=25
+        )
+
+
+        boton_simular.pack(
+            pady=10,
+            padx=15
+        )
 
 
 
@@ -232,6 +265,77 @@ class Interfaz:
         self.area_texto.insert(
             "end",
             "Sistema listo...\n"
+        )
+
+
+
+    # ---------------------------------
+    # Abrir formulario de creación
+    # ---------------------------------
+
+    def abrir_formulario(self):
+
+
+        from formulario import FormularioAutomata
+
+
+        FormularioAutomata(
+            self.ventana,
+            self.recibir_automata
+        )
+
+
+
+    # ---------------------------------
+    # Recibir automata creado
+    # ---------------------------------
+
+    def recibir_automata(self, automata):
+
+
+        self.automata_actual = automata
+
+
+
+        self.area_texto.insert(
+            "end",
+            "\n===== AUTÓMATA CREADO =====\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            f"Tipo: {automata.tipo}\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            f"Estados: {automata.estados}\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            f"Alfabeto: {automata.alfabeto}\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            f"Estado inicial: {automata.estado_inicial}\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            f"Estados finales: {automata.estados_finales}\n"
+        )
+
+
+        self.area_texto.insert(
+            "end",
+            "============================\n"
         )
 
 
