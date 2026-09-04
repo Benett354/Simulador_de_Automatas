@@ -203,7 +203,8 @@ class Interfaz:
         boton_transiciones = ttk.Button(
             panel_control,
             text="Transiciones",
-            width=25
+            width=25,
+            command=self.abrir_transiciones
         )
 
 
@@ -336,6 +337,40 @@ class Interfaz:
         self.area_texto.insert(
             "end",
             "============================\n"
+        )
+
+
+
+    # ---------------------------------
+    # Abrir editor de transiciones
+    # ---------------------------------
+
+    def abrir_transiciones(self):
+
+
+        if self.automata_actual is None:
+
+
+            from tkinter import messagebox
+
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Primero debe crear un autómata"
+            )
+
+
+            return
+
+
+
+        from transiciones import VentanaTransiciones
+
+
+
+        VentanaTransiciones(
+            self.ventana,
+            self.automata_actual
         )
 
 
