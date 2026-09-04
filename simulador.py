@@ -13,6 +13,13 @@ class Simulador:
 
     def simular_afd(self, cadena):
 
+        errores = self.automata.validar()
+
+
+        if errores:
+
+            return False, [], errores
+
 
         estado_actual = self.automata.estado_inicial
 
@@ -140,6 +147,13 @@ class Simulador:
     # ---------------------------------
 
     def simular_afn(self, cadena):
+
+        errores = self.automata.validar()
+
+
+        if errores:
+
+            return False, [], errores
 
 
         estados_actuales = self.epsilon_clausura(

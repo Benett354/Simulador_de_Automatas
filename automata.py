@@ -111,7 +111,83 @@ class Automata:
 
         return self.transiciones.get(clave, None)
 
+    # ---------------------------------
+    # Validar automata
+    # ---------------------------------
 
+    def validar(self):
+
+
+        errores = []
+
+
+
+        # Verificar estado inicial
+
+        if self.estado_inicial is None:
+
+            errores.append(
+                "No existe estado inicial"
+            )
+
+
+
+        # Verificar estados finales
+
+        for estado in self.estados_finales:
+
+
+            if estado not in self.estados:
+
+                errores.append(
+                    f"El estado final {estado} no existe"
+                )
+
+
+
+        # Verificar transiciones
+
+        for (origen, simbolo), destino in self.transiciones.items():
+
+
+            if origen not in self.estados:
+
+                errores.append(
+                    f"El estado origen {origen} no existe"
+                )
+
+
+
+            # AFN
+
+            if self.tipo == "AFN":
+
+
+                for estado_destino in destino:
+
+
+                    if estado_destino not in self.estados:
+
+                        errores.append(
+                            f"El destino {estado_destino} no existe"
+                        )
+
+
+
+            # AFD
+
+            else:
+
+
+                if destino not in self.estados:
+
+                    errores.append(
+                        f"El destino {destino} no existe"
+                    )
+
+
+
+        return errores
 
     # ---------------------------------
     # Mostrar información
