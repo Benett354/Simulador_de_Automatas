@@ -51,8 +51,6 @@ class Automata:
 
     def agregar_estado_final(self, estado):
 
-        self.estados.add(estado)
-
         self.estados_finales.add(estado)
 
 
@@ -92,11 +90,20 @@ class Automata:
 
 
 
-        # AFD solo permite un destino
+        # AFD solamente un destino
 
         else:
 
+
+            if clave in self.transiciones:
+
+                raise ValueError(
+                    "Un AFD no puede tener múltiples destinos para la misma transición"
+                )
+
+
             self.transiciones[clave] = destino
+
 
 
 
@@ -110,6 +117,9 @@ class Automata:
         clave = (estado, simbolo)
 
         return self.transiciones.get(clave, None)
+
+
+
 
     # ---------------------------------
     # Validar automata
@@ -132,6 +142,14 @@ class Automata:
 
 
 
+        elif self.estado_inicial not in self.estados:
+
+            errores.append(
+                "El estado inicial no pertenece al conjunto de estados"
+            )
+
+
+
         # Verificar estados finales
 
         for estado in self.estados_finales:
@@ -150,10 +168,23 @@ class Automata:
         for (origen, simbolo), destino in self.transiciones.items():
 
 
+
+            # Verificar origen
+
             if origen not in self.estados:
 
                 errores.append(
                     f"El estado origen {origen} no existe"
+                )
+
+
+
+            # Verificar símbolo
+
+            if simbolo != "ε" and simbolo not in self.alfabeto:
+
+                errores.append(
+                    f"El símbolo {simbolo} no pertenece al alfabeto"
                 )
 
 
@@ -188,6 +219,19 @@ class Automata:
 
 
         return errores
+
+
+
+    # ---------------------------------
+    # Comprobar si es válido
+    # ---------------------------------
+
+    def es_valido(self):
+
+        return len(self.validar()) == 0
+
+
+
 
     # ---------------------------------
     # Mostrar información

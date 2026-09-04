@@ -13,18 +13,22 @@ class Simulador:
 
     def simular_afd(self, cadena):
 
+
         errores = self.automata.validar()
 
 
         if errores:
 
-            return False, [], errores
+            return False, [], "\n".join(errores)
+
 
 
         estado_actual = self.automata.estado_inicial
 
 
+
         recorrido = []
+
 
         recorrido.append(
             f"Inicio: {estado_actual}"
@@ -35,9 +39,15 @@ class Simulador:
         for simbolo in cadena:
 
 
+
             if simbolo not in self.automata.alfabeto:
 
-                return False, recorrido, f"Símbolo inválido: {simbolo}"
+
+                return (
+                    False,
+                    recorrido,
+                    f"Símbolo inválido: {simbolo}"
+                )
 
 
 
@@ -56,11 +66,17 @@ class Simulador:
 
             if estado_actual is None:
 
+
                 recorrido.append(
                     "No existe transición"
                 )
 
-                return False, recorrido, "Cadena rechazada"
+
+                return (
+                    False,
+                    recorrido,
+                    "Cadena rechazada"
+                )
 
 
 
@@ -73,12 +89,17 @@ class Simulador:
         if estado_actual in self.automata.estados_finales:
 
 
+
             recorrido.append(
                 "Estado final encontrado"
             )
 
 
-            return True, recorrido, "Cadena aceptada"
+            return (
+                True,
+                recorrido,
+                "Cadena aceptada"
+            )
 
 
 
@@ -87,7 +108,11 @@ class Simulador:
         )
 
 
-        return False, recorrido, "Cadena rechazada"
+        return (
+            False,
+            recorrido,
+            "Cadena rechazada"
+        )
 
 
 
@@ -127,6 +152,7 @@ class Simulador:
                 for nuevo_estado in transiciones:
 
 
+
                     if nuevo_estado not in clausura:
 
 
@@ -148,12 +174,15 @@ class Simulador:
 
     def simular_afn(self, cadena):
 
+
         errores = self.automata.validar()
 
 
         if errores:
 
-            return False, [], errores
+
+            return False, [], "\n".join(errores)
+
 
 
         estados_actuales = self.epsilon_clausura(
@@ -165,6 +194,7 @@ class Simulador:
 
 
         recorrido = []
+
 
 
         recorrido.append(
@@ -179,7 +209,13 @@ class Simulador:
 
             if simbolo not in self.automata.alfabeto:
 
-                return False, recorrido, f"Símbolo inválido: {simbolo}"
+
+
+                return (
+                    False,
+                    recorrido,
+                    f"Símbolo inválido: {simbolo}"
+                )
 
 
 
@@ -194,6 +230,7 @@ class Simulador:
 
 
             for estado in estados_actuales:
+
 
 
                 transiciones = self.automata.obtener_transicion(
@@ -225,14 +262,25 @@ class Simulador:
             if not estados_actuales:
 
 
-                return False, recorrido, "Cadena rechazada"
+                recorrido.append(
+                    "No existen caminos posibles"
+                )
+
+
+                return (
+                    False,
+                    recorrido,
+                    "Cadena rechazada"
+                )
 
 
 
         for estado in estados_actuales:
 
 
+
             if estado in self.automata.estados_finales:
+
 
 
                 recorrido.append(
@@ -240,7 +288,11 @@ class Simulador:
                 )
 
 
-                return True, recorrido, "Cadena aceptada"
+                return (
+                    True,
+                    recorrido,
+                    "Cadena aceptada"
+                )
 
 
 
@@ -249,4 +301,9 @@ class Simulador:
         )
 
 
-        return False, recorrido, "Cadena rechazada"
+
+        return (
+            False,
+            recorrido,
+            "Cadena rechazada"
+        )
