@@ -1,5 +1,6 @@
 class Automata:
 
+
     def __init__(self, tipo="AFD"):
 
         # Tipo de automata: AFN o AFD
@@ -22,8 +23,9 @@ class Automata:
 
 
 
+    # ---------------------------------
     # Agregar estados
-
+    # ---------------------------------
 
     def agregar_estado(self, estado):
 
@@ -31,9 +33,9 @@ class Automata:
 
 
 
-  
+    # ---------------------------------
     # Definir estado inicial
-
+    # ---------------------------------
 
     def establecer_estado_inicial(self, estado):
 
@@ -43,9 +45,9 @@ class Automata:
 
 
 
-
+    # ---------------------------------
     # Agregar estado final
-
+    # ---------------------------------
 
     def agregar_estado_final(self, estado):
 
@@ -55,9 +57,9 @@ class Automata:
 
 
 
-
+    # ---------------------------------
     # Agregar símbolos al alfabeto
-
+    # ---------------------------------
 
     def agregar_simbolo(self, simbolo):
 
@@ -65,22 +67,32 @@ class Automata:
 
 
 
-
+    # ---------------------------------
     # Agregar transición
-
+    # ---------------------------------
 
     def agregar_transicion(self, origen, simbolo, destino):
 
         clave = (origen, simbolo)
 
+
+
+        # AFN permite múltiples destinos
+
         if self.tipo == "AFN":
+
 
             if clave not in self.transiciones:
 
                 self.transiciones[clave] = set()
 
+
+
             self.transiciones[clave].add(destino)
 
+
+
+        # AFD solo permite un destino
 
         else:
 
@@ -88,9 +100,10 @@ class Automata:
 
 
 
-  
-    # Obtener transición
 
+    # ---------------------------------
+    # Obtener transición
+    # ---------------------------------
 
     def obtener_transicion(self, estado, simbolo):
 
@@ -100,9 +113,9 @@ class Automata:
 
 
 
-
+    # ---------------------------------
     # Mostrar información
-
+    # ---------------------------------
 
     def mostrar(self):
 
@@ -119,6 +132,8 @@ class Automata:
         print("Estados finales:", self.estados_finales)
 
         print("Transiciones δ:")
+
+
 
         for transicion, destino in self.transiciones.items():
 

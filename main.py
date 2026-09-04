@@ -6,7 +6,7 @@ from simulador import Simulador
 def main():
 
 
-    automata = Automata("AFD")
+    automata = Automata("AFN")
 
 
     # Estados
@@ -14,7 +14,7 @@ def main():
     automata.agregar_estado("q0")
     automata.agregar_estado("q1")
     automata.agregar_estado("q2")
-
+    automata.agregar_estado("q3")
 
 
     # Alfabeto
@@ -23,24 +23,41 @@ def main():
     automata.agregar_simbolo("1")
 
 
-
     # Inicial
 
     automata.establecer_estado_inicial("q0")
 
 
-
     # Final
 
-    automata.agregar_estado_final("q2")
+    automata.agregar_estado_final("q3")
 
 
 
-    # Transiciones
+    # Transición epsilon
 
-    automata.agregar_transicion("q0","0","q1")
+    automata.agregar_transicion(
+        "q0",
+        "ε",
+        "q1"
+    )
 
-    automata.agregar_transicion("q1","1","q2")
+
+
+    # Transiciones normales
+
+    automata.agregar_transicion(
+        "q1",
+        "0",
+        "q2"
+    )
+
+
+    automata.agregar_transicion(
+        "q2",
+        "1",
+        "q3"
+    )
 
 
 
@@ -51,15 +68,25 @@ def main():
     cadena = "01"
 
 
-    aceptada, recorrido, mensaje = simulador.simular_afd(cadena)
+
+    aceptada, recorrido, mensaje = simulador.simular_afn(cadena)
 
 
 
     print("\nCadena:", cadena)
 
-    print("Recorrido:", recorrido)
 
-    print("Resultado:", mensaje)
+    print("\nRecorrido:")
+
+    for paso in recorrido:
+
+        print(paso)
+
+
+
+    print("\nResultado:")
+
+    print(mensaje)
 
 
 
