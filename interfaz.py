@@ -28,10 +28,7 @@ class Interfaz:
         )
 
 
-        # Guarda el autómata creado
-
         self.automata_actual = None
-
 
 
         self.crear_menu()
@@ -60,7 +57,6 @@ class Interfaz:
         )
 
 
-
         archivo.add_command(
             label="Nuevo autómata",
             command=self.abrir_formulario
@@ -70,12 +66,10 @@ class Interfaz:
         archivo.add_separator()
 
 
-
         archivo.add_command(
             label="Salir",
             command=self.ventana.destroy
         )
-
 
 
         barra_menu.add_cascade(
@@ -91,7 +85,6 @@ class Interfaz:
         )
 
 
-
         herramientas.add_command(
             label="Conversión AFN → AFD"
         )
@@ -100,7 +93,6 @@ class Interfaz:
         herramientas.add_command(
             label="Minimización AFD"
         )
-
 
 
         barra_menu.add_cascade(
@@ -161,10 +153,6 @@ class Interfaz:
 
 
 
-        # -----------------------------
-        # Panel izquierdo
-        # -----------------------------
-
         panel_control = ttk.LabelFrame(
             contenedor,
             text="Control del Autómata"
@@ -215,9 +203,17 @@ class Interfaz:
 
 
 
-        # -----------------------------
-        # Entrada cadena
-        # -----------------------------
+        ttk.Button(
+            panel_control,
+            text="Ver Autómata",
+            width=25,
+            command=self.mostrar_automata
+        ).pack(
+            pady=10,
+            padx=15
+        )
+
+
 
         marco_cadena = ttk.LabelFrame(
             panel_control,
@@ -244,10 +240,6 @@ class Interfaz:
         )
 
 
-
-        # -----------------------------
-        # Panel derecho
-        # -----------------------------
 
         panel_resultado = ttk.LabelFrame(
             contenedor,
@@ -295,7 +287,6 @@ class Interfaz:
         from formulario import FormularioAutomata
 
 
-
         FormularioAutomata(
             self.ventana,
             self.recibir_automata
@@ -311,7 +302,6 @@ class Interfaz:
 
 
         self.automata_actual = automata
-
 
 
         self.area_texto.insert(
@@ -374,7 +364,6 @@ class Interfaz:
         from transiciones import VentanaTransiciones
 
 
-
         VentanaTransiciones(
             self.ventana,
             self.automata_actual
@@ -406,19 +395,6 @@ class Interfaz:
 
 
 
-        if cadena == "":
-
-
-            messagebox.showwarning(
-                "Advertencia",
-                "Ingrese una cadena"
-            )
-
-
-            return
-
-
-
         from simulador import Simulador
 
 
@@ -436,7 +412,6 @@ class Interfaz:
                 cadena
             )
 
-
         else:
 
 
@@ -448,21 +423,8 @@ class Interfaz:
 
         self.area_texto.insert(
             "end",
-            "\n\n===== SIMULACIÓN =====\n"
+            "\n===== SIMULACIÓN =====\n"
         )
-
-
-        self.area_texto.insert(
-            "end",
-            f"Cadena: {cadena}\n\n"
-        )
-
-
-        self.area_texto.insert(
-            "end",
-            "Recorrido:\n"
-        )
-
 
 
         for paso in recorrido:
@@ -470,20 +432,46 @@ class Interfaz:
 
             self.area_texto.insert(
                 "end",
-                str(paso) + "\n"
+                str(paso)+"\n"
             )
 
 
-
         self.area_texto.insert(
             "end",
-            "\nResultado:\n"
+            "\nResultado: "
+            + resultado
+            + "\n"
         )
 
 
-        self.area_texto.insert(
-            "end",
-            resultado + "\n"
+
+    # ---------------------------------
+    # Mostrar dibujo del autómata
+    # ---------------------------------
+
+    def mostrar_automata(self):
+
+
+        if self.automata_actual is None:
+
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Primero cree un autómata"
+            )
+
+
+            return
+
+
+
+        from dibujador import DibujadorAutomata
+
+
+
+        DibujadorAutomata(
+            self.ventana,
+            self.automata_actual
         )
 
 
