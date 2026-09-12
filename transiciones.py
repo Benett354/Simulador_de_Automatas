@@ -12,19 +12,18 @@ class VentanaTransiciones:
         self.automata = automata
 
 
-
         self.ventana = tk.Toplevel(
             ventana_padre
         )
 
 
         self.ventana.title(
-            "Agregar Transiciones"
+            "Editor de Transiciones"
         )
 
 
         self.ventana.geometry(
-            "600x500"
+            "650x500"
         )
 
 
@@ -33,7 +32,7 @@ class VentanaTransiciones:
 
 
     # ---------------------------------
-    # Crear ventana
+    # Crear interfaz
     # ---------------------------------
 
     def crear_interfaz(self):
@@ -57,26 +56,22 @@ class VentanaTransiciones:
         )
 
 
-        marco.pack(
-            pady=10
-        )
+        marco.pack()
 
 
 
-        # -----------------------------
-        # Estado origen
-        # -----------------------------
-
+        # Origen
 
         tk.Label(
             marco,
-            text="Estado origen:"
+            text="Origen:"
         ).grid(
             row=0,
             column=0,
             padx=5,
             pady=5
         )
+
 
 
         self.origen = ttk.Combobox(
@@ -93,9 +88,7 @@ class VentanaTransiciones:
 
 
 
-        # -----------------------------
         # Símbolo
-        # -----------------------------
 
 
         tk.Label(
@@ -109,9 +102,11 @@ class VentanaTransiciones:
         )
 
 
+
         simbolos = list(
             self.automata.alfabeto
         )
+
 
 
         if self.automata.tipo == "AFN":
@@ -134,14 +129,12 @@ class VentanaTransiciones:
 
 
 
-        # -----------------------------
-        # Estado destino
-        # -----------------------------
+        # Destino
 
 
         tk.Label(
             marco,
-            text="Estado destino:"
+            text="Destino:"
         ).grid(
             row=2,
             column=0,
@@ -165,22 +158,43 @@ class VentanaTransiciones:
 
 
 
-        # Botón agregar
-
-        boton = ttk.Button(
-            self.ventana,
-            text="Agregar transición",
-            command=self.agregar
+        botones = ttk.Frame(
+            self.ventana
         )
 
 
-        boton.pack(
+        botones.pack(
             pady=15
         )
 
 
 
+        ttk.Button(
+            botones,
+            text="Agregar",
+            command=self.agregar
+        ).grid(
+            row=0,
+            column=0,
+            padx=10
+        )
+
+
+
+        ttk.Button(
+            botones,
+            text="Eliminar",
+            command=self.eliminar
+        ).grid(
+            row=0,
+            column=1,
+            padx=10
+        )
+
+
+
         # Tabla
+
 
         self.tabla = ttk.Treeview(
             self.ventana,
@@ -191,6 +205,7 @@ class VentanaTransiciones:
             ),
             show="headings"
         )
+
 
 
         self.tabla.heading(
@@ -230,27 +245,27 @@ class VentanaTransiciones:
     def agregar(self):
 
 
+        origen = self.origen.get()
+
+        simbolo = self.simbolo.get()
+
+        destino = self.destino.get()
+
+
+
+        if not origen or not simbolo or not destino:
+
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Complete todos los campos"
+            )
+
+            return
+
+
+
         try:
-
-
-            origen = self.origen.get()
-
-            simbolo = self.simbolo.get()
-
-            destino = self.destino.get()
-
-
-
-            if not origen or not simbolo or not destino:
-
-
-                messagebox.showwarning(
-                    "Advertencia",
-                    "Complete todos los campos"
-                )
-
-                return
-
 
 
             self.automata.agregar_transicion(
@@ -258,7 +273,6 @@ class VentanaTransiciones:
                 simbolo,
                 destino
             )
-
 
 
             self.actualizar_tabla()
@@ -276,6 +290,74 @@ class VentanaTransiciones:
 
 
     # ---------------------------------
+    # Eliminar transición
+    # ---------------------------------
+
+    def eliminar(self):
+
+
+        seleccion = self.tabla.selection()
+
+
+
+        if not seleccion:
+
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Seleccione una transición"
+            )
+
+            return
+
+
+
+        datos = self.tabla.item(
+            seleccion[0]
+        )
+
+
+        origen, simbolo, destino = datos["values"]
+
+
+
+        clave = (
+            origen,
+            simbolo
+        )
+
+
+
+        if self.automata.tipo == "AFN":
+
+
+            self.automata.transiciones[clave].remove(
+                destino
+            )
+
+
+
+            if len(
+                self.automata.transiciones[clave]
+            ) == 0:
+
+
+                del self.automata.transiciones[clave]
+
+
+
+        else:
+
+
+            del self.automata.transiciones[clave]
+
+
+
+        self.actualizar_tabla()
+
+
+
+    # ---------------------------------
     # Actualizar tabla
     # ---------------------------------
 
@@ -284,7 +366,9 @@ class VentanaTransiciones:
 
         for fila in self.tabla.get_children():
 
-            self.tabla.delete(fila)
+            self.tabla.delete(
+                fila
+            )
 
 
 
@@ -295,12 +379,33 @@ class VentanaTransiciones:
 
 
 
-            self.tabla.insert(
-                "",
-                "end",
-                values=(
-                    origen,
-                    simbolo,
-                    destino
+            if self.automata.tipo == "AFN":
+
+
+                for estado in destino:
+
+
+                    self.tabla.insert(
+                        "",
+                        "end",
+                        values=(
+                            origen,
+                            simbolo,
+                            estado
+                        )
+                    )
+
+
+
+            else:
+
+
+                self.tabla.insert(
+                    "",
+                    "end",
+                    values=(
+                        origen,
+                        simbolo,
+                        destino
+                    )
                 )
-            )
