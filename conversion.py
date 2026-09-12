@@ -1,5 +1,5 @@
 from automata import Automata
-
+from collections import deque
 
 
 class ConversionAFN_AFD:
@@ -7,8 +7,14 @@ class ConversionAFN_AFD:
 
     def __init__(self, afn):
 
-
         self.afn = afn
+
+        # Relación:
+        # subconjunto AFN -> nombre del estado AFD
+        self.nombres = {}
+
+        # Guarda las filas de la tabla de subconjuntos
+        self.tabla_subconjuntos = []
 
 
 
@@ -18,41 +24,35 @@ class ConversionAFN_AFD:
 
     def epsilon_clausura(self, estados):
 
-
         clausura = set(estados)
-
 
         pendientes = list(estados)
 
 
-
         while pendientes:
-
 
             estado = pendientes.pop()
 
 
-
-            transicion = self.afn.obtener_transicion(
+            destinos = self.afn.obtener_transicion(
                 estado,
                 "ε"
             )
 
 
+            if destinos:
 
-            if transicion:
-
-
-                for nuevo_estado in transicion:
-
+                for nuevo_estado in destinos:
 
                     if nuevo_estado not in clausura:
 
+                        clausura.add(
+                            nuevo_estado
+                        )
 
-                        clausura.add(nuevo_estado)
-
-                        pendientes.append(nuevo_estado)
-
+                        pendientes.append(
+                            nuevo_estado
+                        )
 
 
         return clausura
@@ -60,45 +60,150 @@ class ConversionAFN_AFD:
 
 
     # ---------------------------------
-    # Mover estados
+    # Función mover
     # ---------------------------------
 
     def mover(self, estados, simbolo):
 
-
         resultado = set()
-
 
 
         for estado in estados:
 
-
-            transicion = self.afn.obtener_transicion(
+            destinos = self.afn.obtener_transicion(
                 estado,
                 simbolo
             )
 
 
-            if transicion:
-
+            if destinos:
 
                 resultado.update(
-                    transicion
+                    destinos
                 )
-
 
 
         return resultado
 
 
 
+    # ---------------------------------
+    # Generar nombre A, B, C...
+    # ---------------------------------
+
+    def generar_nombre(self, numero):
+
+        nombre = ""
+
+
+        while True:
+
+            numero, residuo = divmod(
+                numero,
+                26
+            )
+
+            nombre = chr(
+                65 + residuo
+            ) + nombre
+
+
+            if numero == 0:
+
+                break
+
+
+            numero -= 1
+
+
+        return nombre
+
+
 
     # ---------------------------------
-    # Conversión AFN → AFD
+    # Mostrar conjunto ordenado
+    # ---------------------------------
+
+    def formatear_conjunto(self, conjunto):
+
+        if not conjunto:
+
+            return "∅"
+
+
+        estados = sorted(
+            conjunto
+        )
+
+
+        return "{" + ", ".join(estados) + "}"
+
+
+
+    # ---------------------------------
+    # Obtener nombre para subconjunto
+    # ---------------------------------
+
+    def registrar_subconjunto(
+        self,
+        subconjunto,
+        afd,
+        pendientes
+    ):
+
+        if subconjunto not in self.nombres:
+
+            numero = len(
+                self.nombres
+            )
+
+            nombre = self.generar_nombre(
+                numero
+            )
+
+
+            self.nombres[
+                subconjunto
+            ] = nombre
+
+
+            afd.agregar_estado(
+                nombre
+            )
+
+
+            pendientes.append(
+                subconjunto
+            )
+
+
+
+    # ---------------------------------
+    # Conversión AFN -> AFD
     # ---------------------------------
 
     def convertir(self):
 
+
+        if self.afn.tipo != "AFN":
+
+            raise ValueError(
+                "La conversión solamente puede realizarse con un AFN."
+            )
+
+
+        errores = self.afn.validar()
+
+
+        if errores:
+
+            raise ValueError(
+                "\n".join(errores)
+            )
+
+
+
+        # Crear AFD vacío
 
         afd = Automata(
             "AFD"
@@ -106,11 +211,30 @@ class ConversionAFN_AFD:
 
 
 
-        afd.alfabeto = self.afn.alfabeto.copy()
+        # Copiar alfabeto
+
+        for simbolo in self.afn.alfabeto:
+
+            afd.agregar_simbolo(
+                simbolo
+            )
 
 
 
-        estado_inicial = frozenset(
+        # Limpiar datos de una conversión anterior
+
+        self.nombres = {}
+
+        self.tabla_subconjuntos = []
+
+
+
+        # ---------------------------------
+        # PASO 1:
+        # ε-clausura del estado inicial
+        # ---------------------------------
+
+        inicial = frozenset(
             self.epsilon_clausura(
                 {
                     self.afn.estado_inicial
@@ -120,81 +244,106 @@ class ConversionAFN_AFD:
 
 
 
-        pendientes = [
-            estado_inicial
+        pendientes = deque()
+
+
+
+        # Registrar primer subconjunto
+
+        self.registrar_subconjunto(
+            inicial,
+            afd,
+            pendientes
+        )
+
+
+
+        nombre_inicial = self.nombres[
+            inicial
         ]
 
 
 
-        visitados = set()
-
-
-
-        nombres = {}
-
-
-
-        contador = 0
-
-
-
-        nombres[estado_inicial] = (
-            "A"
-        )
-
-
-
-        afd.agregar_estado(
-            "A"
-        )
-
-
         afd.establecer_estado_inicial(
-            "A"
+            nombre_inicial
         )
 
 
+
+        procesados = set()
+
+
+
+        # ---------------------------------
+        # Construcción de subconjuntos
+        # ---------------------------------
 
         while pendientes:
 
 
-            actual = pendientes.pop()
+            actual = pendientes.popleft()
 
 
 
-            if actual in visitados:
+            if actual in procesados:
 
                 continue
 
 
 
-            visitados.add(
+            procesados.add(
                 actual
             )
 
 
 
-            nombre_actual = nombres[actual]
+            nombre_actual = self.nombres[
+                actual
+            ]
 
 
 
-            # Verificar estado final
+            # ---------------------------------
+            # Revisar si es estado final
+            # ---------------------------------
 
-            if any(
-                estado in self.afn.estados_finales
-                for estado in actual
+            for estado in actual:
+
+
+                if estado in self.afn.estados_finales:
+
+
+                    afd.agregar_estado_final(
+                        nombre_actual
+                    )
+
+
+                    break
+
+
+
+            # Fila para la tabla
+
+            fila = {
+                "estado_afd": nombre_actual,
+                "subconjunto": self.formatear_conjunto(
+                    actual
+                )
+            }
+
+
+
+            # ---------------------------------
+            # Procesar cada símbolo
+            # ---------------------------------
+
+            for simbolo in sorted(
+                self.afn.alfabeto
             ):
 
 
-                afd.agregar_estado_final(
-                    nombre_actual
-                )
-
-
-
-            for simbolo in self.afn.alfabeto:
-
-
+                # PASO 1:
+                # mover(actual, simbolo)
 
                 movimiento = self.mover(
                     actual,
@@ -203,51 +352,73 @@ class ConversionAFN_AFD:
 
 
 
-                clausura = frozenset(
-                    self.epsilon_clausura(
-                        movimiento
-                    )
+                # PASO 2:
+                # ε-clausura del resultado
+
+                cierre = self.epsilon_clausura(
+                    movimiento
                 )
 
 
 
-                if len(clausura) == 0:
-
-                    continue
-
-
-
-                if clausura not in nombres:
+                destino = frozenset(
+                    cierre
+                )
 
 
-                    contador += 1
+
+                # Registrar nuevo subconjunto
+
+                self.registrar_subconjunto(
+                    destino,
+                    afd,
+                    pendientes
+                )
 
 
-                    nuevo_nombre = chr(
-                        65 + contador
-                    )
+
+                nombre_destino = self.nombres[
+                    destino
+                ]
 
 
-                    nombres[clausura] = nuevo_nombre
 
-
-                    afd.agregar_estado(
-                        nuevo_nombre
-                    )
-
-
-                    pendientes.append(
-                        clausura
-                    )
-
-
+                # Crear transición AFD
 
                 afd.agregar_transicion(
                     nombre_actual,
                     simbolo,
-                    nombres[clausura]
+                    nombre_destino
                 )
 
 
 
+                # Guardar resultado para tabla
+
+                fila[simbolo] = (
+                    nombre_destino
+                    + " = "
+                    + self.formatear_conjunto(
+                        destino
+                    )
+                )
+
+
+
+            self.tabla_subconjuntos.append(
+                fila
+            )
+
+
+
         return afd
+
+
+
+    # ---------------------------------
+    # Obtener tabla
+    # ---------------------------------
+
+    def obtener_tabla(self):
+
+        return self.tabla_subconjuntos

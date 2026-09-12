@@ -22,12 +22,13 @@ class Interfaz:
             600
         )
 
-        # Guarda el autómata actualmente cargado
+
         self.automata_actual = None
 
         self.crear_menu()
 
         self.crear_interfaz()
+
 
 
     # ---------------------------------
@@ -40,58 +41,62 @@ class Interfaz:
             self.ventana
         )
 
-        # -----------------------------
-        # Menú Archivo
-        # -----------------------------
 
         archivo = tk.Menu(
             barra_menu,
             tearoff=0
         )
 
+
         archivo.add_command(
             label="Nuevo autómata",
             command=self.abrir_formulario
         )
 
+
         archivo.add_separator()
+
 
         archivo.add_command(
             label="Salir",
             command=self.ventana.destroy
         )
 
+
         barra_menu.add_cascade(
             label="Archivo",
             menu=archivo
         )
 
-        # -----------------------------
-        # Menú Herramientas
-        # -----------------------------
+
 
         herramientas = tk.Menu(
             barra_menu,
             tearoff=0
         )
 
+
         herramientas.add_command(
             label="Conversión AFN → AFD",
             command=self.convertir_afn_afd
         )
 
+
         herramientas.add_command(
             label="Minimización AFD"
         )
+
 
         barra_menu.add_cascade(
             label="Herramientas",
             menu=herramientas
         )
 
+
         self.ventana.config(
             menu=barra_menu
         )
+
 
 
     # ---------------------------------
@@ -106,9 +111,12 @@ class Interfaz:
             font=("Arial", 24, "bold")
         )
 
+
         titulo.pack(
             pady=15
         )
+
+
 
         subtitulo = tk.Label(
             self.ventana,
@@ -116,11 +124,15 @@ class Interfaz:
             font=("Arial", 12)
         )
 
+
         subtitulo.pack()
+
+
 
         contenedor = ttk.Frame(
             self.ventana
         )
+
 
         contenedor.pack(
             expand=True,
@@ -129,20 +141,25 @@ class Interfaz:
             pady=20
         )
 
-        # -----------------------------
+
+
+        # ---------------------------------
         # Panel izquierdo
-        # -----------------------------
+        # ---------------------------------
 
         panel_control = ttk.LabelFrame(
             contenedor,
             text="Control del Autómata"
         )
 
+
         panel_control.pack(
             side="left",
             fill="y",
             padx=10
         )
+
+
 
         ttk.Button(
             panel_control,
@@ -154,6 +171,8 @@ class Interfaz:
             padx=15
         )
 
+
+
         ttk.Button(
             panel_control,
             text="Transiciones",
@@ -163,6 +182,8 @@ class Interfaz:
             pady=10,
             padx=15
         )
+
+
 
         ttk.Button(
             panel_control,
@@ -174,6 +195,8 @@ class Interfaz:
             padx=15
         )
 
+
+
         ttk.Button(
             panel_control,
             text="Ver Autómata",
@@ -183,6 +206,8 @@ class Interfaz:
             pady=10,
             padx=15
         )
+
+
 
         ttk.Button(
             panel_control,
@@ -194,38 +219,47 @@ class Interfaz:
             padx=15
         )
 
-        # -----------------------------
+
+
+        # ---------------------------------
         # Entrada de cadena
-        # -----------------------------
+        # ---------------------------------
 
         marco_cadena = ttk.LabelFrame(
             panel_control,
             text="Cadena"
         )
 
+
         marco_cadena.pack(
             pady=20,
             padx=10
         )
+
+
 
         self.entrada_cadena = tk.Entry(
             marco_cadena,
             width=25
         )
 
+
         self.entrada_cadena.pack(
             padx=10,
             pady=10
         )
 
-        # -----------------------------
+
+
+        # ---------------------------------
         # Panel derecho
-        # -----------------------------
+        # ---------------------------------
 
         panel_resultado = ttk.LabelFrame(
             contenedor,
             text="Información del proceso"
         )
+
 
         panel_resultado.pack(
             expand=True,
@@ -233,10 +267,13 @@ class Interfaz:
             padx=10
         )
 
+
+
         self.area_texto = tk.Text(
             panel_resultado,
             font=("Consolas", 12)
         )
+
 
         self.area_texto.pack(
             expand=True,
@@ -245,10 +282,13 @@ class Interfaz:
             pady=10
         )
 
+
+
         self.area_texto.insert(
             "end",
             "Sistema listo...\n"
         )
+
 
 
     # ---------------------------------
@@ -259,10 +299,12 @@ class Interfaz:
 
         from formulario import FormularioAutomata
 
+
         FormularioAutomata(
             self.ventana,
             self.recibir_automata
         )
+
 
 
     # ---------------------------------
@@ -273,40 +315,53 @@ class Interfaz:
 
         self.automata_actual = automata
 
+
         self.area_texto.insert(
             "end",
             "\n===== AUTÓMATA CREADO =====\n"
         )
+
 
         self.area_texto.insert(
             "end",
             f"Tipo: {automata.tipo}\n"
         )
 
+
         self.area_texto.insert(
             "end",
             f"Estados: {automata.estados}\n"
         )
+
 
         self.area_texto.insert(
             "end",
             f"Alfabeto: {automata.alfabeto}\n"
         )
 
+
         self.area_texto.insert(
             "end",
             f"Inicial: {automata.estado_inicial}\n"
         )
+
 
         self.area_texto.insert(
             "end",
             f"Finales: {automata.estados_finales}\n"
         )
 
+
         self.area_texto.insert(
             "end",
             "============================\n"
         )
+
+
+        self.area_texto.see(
+            "end"
+        )
+
 
 
     # ---------------------------------
@@ -324,12 +379,15 @@ class Interfaz:
 
             return
 
+
         from transiciones import VentanaTransiciones
+
 
         VentanaTransiciones(
             self.ventana,
             self.automata_actual
         )
+
 
 
     # ---------------------------------
@@ -347,40 +405,52 @@ class Interfaz:
 
             return
 
+
         cadena = self.entrada_cadena.get()
 
+
         from simulador import Simulador
+
 
         simulador = Simulador(
             self.automata_actual
         )
 
+
         if self.automata_actual.tipo == "AFD":
 
-            aceptada, recorrido, resultado = simulador.simular_afd(
-                cadena
+            aceptada, recorrido, resultado = (
+                simulador.simular_afd(
+                    cadena
+                )
             )
 
         else:
 
-            aceptada, recorrido, resultado = simulador.simular_afn(
-                cadena
+            aceptada, recorrido, resultado = (
+                simulador.simular_afn(
+                    cadena
+                )
             )
+
 
         self.area_texto.insert(
             "end",
             "\n===== SIMULACIÓN =====\n"
         )
 
-        self.area_texto.insert(
-            "end",
-            f"Cadena: {cadena}\n"
-        )
 
         self.area_texto.insert(
             "end",
-            "\nRecorrido:\n"
+            f"Cadena: {cadena}\n\n"
         )
+
+
+        self.area_texto.insert(
+            "end",
+            "Recorrido:\n"
+        )
+
 
         for paso in recorrido:
 
@@ -389,6 +459,7 @@ class Interfaz:
                 str(paso) + "\n"
             )
 
+
         self.area_texto.insert(
             "end",
             "\nResultado: "
@@ -396,18 +467,21 @@ class Interfaz:
             + "\n"
         )
 
+
         self.area_texto.insert(
             "end",
             "======================\n"
         )
+
 
         self.area_texto.see(
             "end"
         )
 
 
+
     # ---------------------------------
-    # Mostrar dibujo del autómata
+    # Mostrar dibujo
     # ---------------------------------
 
     def mostrar_automata(self):
@@ -421,7 +495,9 @@ class Interfaz:
 
             return
 
+
         from dibujador import DibujadorAutomata
+
 
         DibujadorAutomata(
             self.ventana,
@@ -429,13 +505,13 @@ class Interfaz:
         )
 
 
+
     # ---------------------------------
-    # Convertir AFN a AFD
+    # Convertir AFN -> AFD
     # ---------------------------------
 
     def convertir_afn_afd(self):
 
-        # Verificar que exista un autómata
         if self.automata_actual is None:
 
             messagebox.showwarning(
@@ -445,18 +521,21 @@ class Interfaz:
 
             return
 
-        # Verificar que sea AFN
+
+
         if self.automata_actual.tipo != "AFN":
 
             messagebox.showwarning(
                 "Advertencia",
-                "El autómata actual no es un AFN"
+                "El autómata actual debe ser un AFN"
             )
 
             return
 
-        # Validar el AFN antes de convertir
+
+
         errores = self.automata_actual.validar()
+
 
         if errores:
 
@@ -467,80 +546,103 @@ class Interfaz:
 
             return
 
+
+
         try:
 
             from conversion import ConversionAFN_AFD
+
 
             conversion = ConversionAFN_AFD(
                 self.automata_actual
             )
 
+
             afd = conversion.convertir()
 
-            # Mostrar resultado
+
+            # Mostrar tabla antes de reemplazar el AFN
+            self.mostrar_tabla_subconjuntos(
+                conversion,
+                afd
+            )
+
+
+
             self.area_texto.insert(
                 "end",
                 "\n===== CONVERSIÓN AFN → AFD =====\n"
             )
 
-            self.area_texto.insert(
-                "end",
-                f"Tipo resultante: {afd.tipo}\n"
-            )
 
             self.area_texto.insert(
                 "end",
-                f"Estados: {afd.estados}\n"
+                f"Estados AFD: {afd.estados}\n"
             )
+
 
             self.area_texto.insert(
                 "end",
                 f"Alfabeto: {afd.alfabeto}\n"
             )
 
-            self.area_texto.insert(
-                "end",
-                f"Estado inicial: {afd.estado_inicial}\n"
-            )
 
             self.area_texto.insert(
                 "end",
-                f"Estados finales: {afd.estados_finales}\n"
+                f"Inicial: {afd.estado_inicial}\n"
             )
+
+
+            self.area_texto.insert(
+                "end",
+                f"Finales: {afd.estados_finales}\n"
+            )
+
 
             self.area_texto.insert(
                 "end",
                 "\nTransiciones:\n"
             )
 
-            for (origen, simbolo), destino in afd.transiciones.items():
+
+
+            for (origen, simbolo), destino in sorted(
+                afd.transiciones.items()
+            ):
 
                 self.area_texto.insert(
                     "end",
                     f"{origen} --{simbolo}--> {destino}\n"
                 )
 
+
+
             self.area_texto.insert(
                 "end",
                 "================================\n"
             )
 
-            # El AFD convertido pasa a ser el autómata actual
+
+            # Ahora el AFD pasa a ser el actual
             self.automata_actual = afd
+
 
             self.area_texto.insert(
                 "end",
                 "\nEl AFD convertido ahora es el autómata actual.\n"
             )
 
+
             self.area_texto.see(
                 "end"
             )
+
 
             messagebox.showinfo(
                 "Conversión completada",
                 "El AFN fue convertido correctamente a AFD."
             )
+
 
         except Exception as error:
 
@@ -548,6 +650,169 @@ class Interfaz:
                 "Error",
                 str(error)
             )
+
+
+
+    # ---------------------------------
+    # Mostrar tabla de subconjuntos
+    # ---------------------------------
+
+    def mostrar_tabla_subconjuntos(
+        self,
+        conversion,
+        afd
+    ):
+
+        ventana_tabla = tk.Toplevel(
+            self.ventana
+        )
+
+
+        ventana_tabla.title(
+            "Tabla de Conversión AFN → AFD"
+        )
+
+
+        ventana_tabla.geometry(
+            "900x500"
+        )
+
+
+
+        titulo = tk.Label(
+            ventana_tabla,
+            text="CONSTRUCCIÓN DE SUBCONJUNTOS",
+            font=("Arial", 18, "bold")
+        )
+
+
+        titulo.pack(
+            pady=15
+        )
+
+
+
+        subtitulo = tk.Label(
+            ventana_tabla,
+            text="Cada estado del AFD representa un subconjunto de estados del AFN",
+            font=("Arial", 11)
+        )
+
+
+        subtitulo.pack(
+            pady=5
+        )
+
+
+
+        simbolos = sorted(
+            afd.alfabeto
+        )
+
+
+
+        columnas = [
+            "estado_afd",
+            "subconjunto"
+        ] + simbolos
+
+
+
+        tabla = ttk.Treeview(
+            ventana_tabla,
+            columns=columnas,
+            show="headings"
+        )
+
+
+
+        tabla.heading(
+            "estado_afd",
+            text="Estado AFD"
+        )
+
+
+        tabla.heading(
+            "subconjunto",
+            text="Subconjunto AFN"
+        )
+
+
+
+        tabla.column(
+            "estado_afd",
+            width=100,
+            anchor="center"
+        )
+
+
+        tabla.column(
+            "subconjunto",
+            width=220,
+            anchor="center"
+        )
+
+
+
+        for simbolo in simbolos:
+
+            tabla.heading(
+                simbolo,
+                text=simbolo
+            )
+
+
+            tabla.column(
+                simbolo,
+                width=220,
+                anchor="center"
+            )
+
+
+
+        for fila in conversion.obtener_tabla():
+
+            valores = [
+                fila["estado_afd"],
+                fila["subconjunto"]
+            ]
+
+
+            for simbolo in simbolos:
+
+                valores.append(
+                    fila.get(
+                        simbolo,
+                        "∅"
+                    )
+                )
+
+
+            tabla.insert(
+                "",
+                "end",
+                values=valores
+            )
+
+
+
+        tabla.pack(
+            expand=True,
+            fill="both",
+            padx=20,
+            pady=20
+        )
+
+
+
+        ttk.Button(
+            ventana_tabla,
+            text="Cerrar",
+            command=ventana_tabla.destroy
+        ).pack(
+            pady=10
+        )
+
 
 
     # ---------------------------------
