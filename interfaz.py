@@ -25,6 +25,7 @@ class Interfaz:
 
         self.automata_actual = None
 
+
         self.crear_menu()
 
         self.crear_interfaz()
@@ -42,10 +43,12 @@ class Interfaz:
         )
 
 
+
         archivo = tk.Menu(
             barra_menu,
             tearoff=0
         )
+
 
 
         archivo.add_command(
@@ -76,6 +79,7 @@ class Interfaz:
         )
 
 
+
         herramientas.add_command(
             label="Conversión AFN → AFD",
             command=self.convertir_afn_afd
@@ -83,8 +87,10 @@ class Interfaz:
 
 
         herramientas.add_command(
-            label="Minimización AFD"
+            label="Minimización AFD",
+            command=self.minimizar_afd
         )
+
 
 
         barra_menu.add_cascade(
@@ -167,7 +173,7 @@ class Interfaz:
             width=25,
             command=self.abrir_formulario
         ).pack(
-            pady=10,
+            pady=8,
             padx=15
         )
 
@@ -179,7 +185,7 @@ class Interfaz:
             width=25,
             command=self.abrir_transiciones
         ).pack(
-            pady=10,
+            pady=8,
             padx=15
         )
 
@@ -191,7 +197,7 @@ class Interfaz:
             width=25,
             command=self.simular_cadena
         ).pack(
-            pady=10,
+            pady=8,
             padx=15
         )
 
@@ -203,7 +209,7 @@ class Interfaz:
             width=25,
             command=self.mostrar_automata
         ).pack(
-            pady=10,
+            pady=8,
             padx=15
         )
 
@@ -215,14 +221,26 @@ class Interfaz:
             width=25,
             command=self.convertir_afn_afd
         ).pack(
-            pady=10,
+            pady=8,
+            padx=15
+        )
+
+
+
+        ttk.Button(
+            panel_control,
+            text="Minimizar AFD",
+            width=25,
+            command=self.minimizar_afd
+        ).pack(
+            pady=8,
             padx=15
         )
 
 
 
         # ---------------------------------
-        # Entrada de cadena
+        # Cadena
         # ---------------------------------
 
         marco_cadena = ttk.LabelFrame(
@@ -232,7 +250,7 @@ class Interfaz:
 
 
         marco_cadena.pack(
-            pady=20,
+            pady=15,
             padx=10
         )
 
@@ -252,7 +270,7 @@ class Interfaz:
 
 
         # ---------------------------------
-        # Panel derecho
+        # Panel de información
         # ---------------------------------
 
         panel_resultado = ttk.LabelFrame(
@@ -406,6 +424,7 @@ class Interfaz:
             return
 
 
+
         cadena = self.entrada_cadena.get()
 
 
@@ -415,6 +434,7 @@ class Interfaz:
         simulador = Simulador(
             self.automata_actual
         )
+
 
 
         if self.automata_actual.tipo == "AFD":
@@ -432,6 +452,7 @@ class Interfaz:
                     cadena
                 )
             )
+
 
 
         self.area_texto.insert(
@@ -452,12 +473,14 @@ class Interfaz:
         )
 
 
+
         for paso in recorrido:
 
             self.area_texto.insert(
                 "end",
                 str(paso) + "\n"
             )
+
 
 
         self.area_texto.insert(
@@ -481,7 +504,7 @@ class Interfaz:
 
 
     # ---------------------------------
-    # Mostrar dibujo
+    # Mostrar autómata
     # ---------------------------------
 
     def mostrar_automata(self):
@@ -561,7 +584,7 @@ class Interfaz:
             afd = conversion.convertir()
 
 
-            # Mostrar tabla antes de reemplazar el AFN
+
             self.mostrar_tabla_subconjuntos(
                 conversion,
                 afd
@@ -577,13 +600,7 @@ class Interfaz:
 
             self.area_texto.insert(
                 "end",
-                f"Estados AFD: {afd.estados}\n"
-            )
-
-
-            self.area_texto.insert(
-                "end",
-                f"Alfabeto: {afd.alfabeto}\n"
+                f"Estados: {afd.estados}\n"
             )
 
 
@@ -606,7 +623,10 @@ class Interfaz:
 
 
 
-            for (origen, simbolo), destino in sorted(
+            for (
+                origen,
+                simbolo
+            ), destino in sorted(
                 afd.transiciones.items()
             ):
 
@@ -617,13 +637,6 @@ class Interfaz:
 
 
 
-            self.area_texto.insert(
-                "end",
-                "================================\n"
-            )
-
-
-            # Ahora el AFD pasa a ser el actual
             self.automata_actual = afd
 
 
@@ -644,6 +657,7 @@ class Interfaz:
             )
 
 
+
         except Exception as error:
 
             messagebox.showerror(
@@ -654,7 +668,7 @@ class Interfaz:
 
 
     # ---------------------------------
-    # Mostrar tabla de subconjuntos
+    # Tabla de subconjuntos
     # ---------------------------------
 
     def mostrar_tabla_subconjuntos(
@@ -679,28 +693,12 @@ class Interfaz:
 
 
 
-        titulo = tk.Label(
+        tk.Label(
             ventana_tabla,
             text="CONSTRUCCIÓN DE SUBCONJUNTOS",
             font=("Arial", 18, "bold")
-        )
-
-
-        titulo.pack(
+        ).pack(
             pady=15
-        )
-
-
-
-        subtitulo = tk.Label(
-            ventana_tabla,
-            text="Cada estado del AFD representa un subconjunto de estados del AFN",
-            font=("Arial", 11)
-        )
-
-
-        subtitulo.pack(
-            pady=5
         )
 
 
@@ -708,7 +706,6 @@ class Interfaz:
         simbolos = sorted(
             afd.alfabeto
         )
-
 
 
         columnas = [
@@ -761,7 +758,6 @@ class Interfaz:
                 text=simbolo
             )
 
-
             tabla.column(
                 simbolo,
                 width=220,
@@ -805,12 +801,306 @@ class Interfaz:
 
 
 
-        ttk.Button(
-            ventana_tabla,
-            text="Cerrar",
-            command=ventana_tabla.destroy
+    # ---------------------------------
+    # Minimizar AFD
+    # ---------------------------------
+
+    def minimizar_afd(self):
+
+        if self.automata_actual is None:
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Primero debe crear un AFD"
+            )
+
+            return
+
+
+
+        if self.automata_actual.tipo != "AFD":
+
+            messagebox.showwarning(
+                "Advertencia",
+                "El autómata actual debe ser un AFD"
+            )
+
+            return
+
+
+
+        try:
+
+            from minimizacion import MinimizadorAFD
+
+
+            minimizador = MinimizadorAFD(
+                self.automata_actual
+            )
+
+
+            afd_minimo = minimizador.minimizar()
+
+
+
+            # Mostrar proceso
+            self.mostrar_proceso_minimizacion(
+                minimizador,
+                afd_minimo
+            )
+
+
+
+            self.area_texto.insert(
+                "end",
+                "\n===== AFD MINIMIZADO =====\n"
+            )
+
+
+            self.area_texto.insert(
+                "end",
+                f"Estados: {afd_minimo.estados}\n"
+            )
+
+
+            self.area_texto.insert(
+                "end",
+                f"Inicial: {afd_minimo.estado_inicial}\n"
+            )
+
+
+            self.area_texto.insert(
+                "end",
+                f"Finales: {afd_minimo.estados_finales}\n"
+            )
+
+
+            self.area_texto.insert(
+                "end",
+                "\nTransiciones:\n"
+            )
+
+
+
+            for (
+                origen,
+                simbolo
+            ), destino in sorted(
+                afd_minimo.transiciones.items()
+            ):
+
+                self.area_texto.insert(
+                    "end",
+                    f"{origen} --{simbolo}--> {destino}\n"
+                )
+
+
+
+            self.automata_actual = afd_minimo
+
+
+            self.area_texto.insert(
+                "end",
+                "\nEl AFD mínimo ahora es el autómata actual.\n"
+            )
+
+
+            self.area_texto.see(
+                "end"
+            )
+
+
+            messagebox.showinfo(
+                "Minimización completada",
+                "El AFD fue minimizado correctamente."
+            )
+
+
+
+        except Exception as error:
+
+            messagebox.showerror(
+                "Error",
+                str(error)
+            )
+
+
+
+    # ---------------------------------
+    # Mostrar proceso de minimización
+    # ---------------------------------
+
+    def mostrar_proceso_minimizacion(
+        self,
+        minimizador,
+        afd_minimo
+    ):
+
+        ventana = tk.Toplevel(
+            self.ventana
+        )
+
+
+        ventana.title(
+            "Proceso de Minimización"
+        )
+
+
+        ventana.geometry(
+            "900x600"
+        )
+
+
+
+        tk.Label(
+            ventana,
+            text="MINIMIZACIÓN DEL AFD",
+            font=("Arial", 18, "bold")
         ).pack(
+            pady=15
+        )
+
+
+
+        marco_texto = ttk.Frame(
+            ventana
+        )
+
+
+        marco_texto.pack(
+            expand=True,
+            fill="both",
+            padx=20,
             pady=10
+        )
+
+
+
+        texto = tk.Text(
+            marco_texto,
+            font=("Consolas", 12)
+        )
+
+
+        texto.pack(
+            expand=True,
+            fill="both"
+        )
+
+
+
+        pasos = minimizador.obtener_pasos()
+
+
+
+        for numero, particion in enumerate(
+            pasos
+        ):
+
+            texto.insert(
+                "end",
+                f"P{numero} = "
+            )
+
+
+            grupos = []
+
+
+            for bloque in particion:
+
+                grupos.append(
+                    "{"
+                    + ", ".join(
+                        sorted(bloque)
+                    )
+                    + "}"
+                )
+
+
+            texto.insert(
+                "end",
+                "{ "
+                + ", ".join(grupos)
+                + " }\n\n"
+            )
+
+
+
+        texto.insert(
+            "end",
+            "===== EQUIVALENCIAS =====\n"
+        )
+
+
+
+        mapeo = minimizador.obtener_mapeo()
+
+
+
+        grupos_minimos = {}
+
+
+
+        for estado_original, nuevo in mapeo.items():
+
+            if nuevo not in grupos_minimos:
+
+                grupos_minimos[nuevo] = []
+
+
+            grupos_minimos[nuevo].append(
+                estado_original
+            )
+
+
+
+        for nuevo, originales in sorted(
+            grupos_minimos.items()
+        ):
+
+            texto.insert(
+                "end",
+                f"{nuevo} = "
+                + "{"
+                + ", ".join(
+                    sorted(originales)
+                )
+                + "}\n"
+            )
+
+
+
+        if minimizador.estado_pozo is not None:
+
+            texto.insert(
+                "end",
+                "\nSe agregó un estado POZO porque "
+                "el AFD no tenía todas sus transiciones definidas.\n"
+            )
+
+
+
+        texto.insert(
+            "end",
+            "\n===== AFD MÍNIMO =====\n"
+        )
+
+
+        texto.insert(
+            "end",
+            f"Estados: {afd_minimo.estados}\n"
+        )
+
+
+        texto.insert(
+            "end",
+            f"Inicial: {afd_minimo.estado_inicial}\n"
+        )
+
+
+        texto.insert(
+            "end",
+            f"Finales: {afd_minimo.estados_finales}\n"
         )
 
 
