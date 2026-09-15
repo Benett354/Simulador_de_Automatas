@@ -3,7 +3,7 @@ class Automata:
 
     def __init__(self, tipo="AFD"):
 
-        tipo = tipo.upper().strip()
+        tipo = str(tipo).upper().strip()
 
         if tipo not in ("AFD", "AFN"):
 
@@ -11,24 +11,22 @@ class Automata:
                 "El tipo de autómata debe ser AFD o AFN."
             )
 
-        # Tipo de autómata
         self.tipo = tipo
 
-        # Q = conjunto de estados
+        # Q
         self.estados = set()
 
-        # Σ = alfabeto
+        # Σ
         self.alfabeto = set()
 
-        # δ = función de transición
+        # δ
         self.transiciones = {}
 
-        # q0 = estado inicial
+        # q0
         self.estado_inicial = None
 
-        # F = estados finales
+        # F
         self.estados_finales = set()
-
 
 
     # ---------------------------------
@@ -37,8 +35,7 @@ class Automata:
 
     def agregar_estado(self, estado):
 
-        estado = estado.strip()
-
+        estado = str(estado).strip()
 
         if not estado:
 
@@ -46,21 +43,18 @@ class Automata:
                 "El nombre del estado no puede estar vacío."
             )
 
-
         self.estados.add(
             estado
         )
 
 
-
     # ---------------------------------
-    # Establecer estado inicial
+    # Estado inicial
     # ---------------------------------
 
     def establecer_estado_inicial(self, estado):
 
-        estado = estado.strip()
-
+        estado = str(estado).strip()
 
         if not estado:
 
@@ -68,26 +62,22 @@ class Automata:
                 "Debe indicar un estado inicial."
             )
 
-
         if estado not in self.estados:
 
             raise ValueError(
                 f"El estado inicial '{estado}' no existe."
             )
 
-
         self.estado_inicial = estado
 
 
-
     # ---------------------------------
-    # Agregar estado final
+    # Estado final
     # ---------------------------------
 
     def agregar_estado_final(self, estado):
 
-        estado = estado.strip()
-
+        estado = str(estado).strip()
 
         if not estado:
 
@@ -95,18 +85,15 @@ class Automata:
                 "El estado final no puede estar vacío."
             )
 
-
         if estado not in self.estados:
 
             raise ValueError(
                 f"El estado final '{estado}' no existe."
             )
 
-
         self.estados_finales.add(
             estado
         )
-
 
 
     # ---------------------------------
@@ -115,15 +102,13 @@ class Automata:
 
     def agregar_simbolo(self, simbolo):
 
-        simbolo = simbolo.strip()
-
+        simbolo = str(simbolo).strip()
 
         if not simbolo:
 
             raise ValueError(
                 "El símbolo no puede estar vacío."
             )
-
 
         if simbolo == "ε":
 
@@ -132,20 +117,15 @@ class Automata:
                 "Se utiliza únicamente como transición especial de un AFN."
             )
 
-
-        # Actualmente el simulador procesa
-        # la cadena carácter por carácter.
         if len(simbolo) != 1:
 
             raise ValueError(
                 f"El símbolo '{simbolo}' debe contener un solo carácter."
             )
 
-
         self.alfabeto.add(
             simbolo
         )
-
 
 
     # ---------------------------------
@@ -159,15 +139,9 @@ class Automata:
         destino
     ):
 
-        origen = origen.strip()
-
-        simbolo = simbolo.strip()
-
-        destino = destino.strip()
-
-
-
-        # Validar origen
+        origen = str(origen).strip()
+        simbolo = str(simbolo).strip()
+        destino = str(destino).strip()
 
         if origen not in self.estados:
 
@@ -175,20 +149,13 @@ class Automata:
                 f"El estado origen '{origen}' no existe."
             )
 
-
-
-        # Validar destino
-
         if destino not in self.estados:
 
             raise ValueError(
                 f"El estado destino '{destino}' no existe."
             )
 
-
-
-        # Validar epsilon
-
+        # ε solamente en AFN
         if simbolo == "ε":
 
             if self.tipo != "AFN":
@@ -197,29 +164,18 @@ class Automata:
                     "Un AFD no puede contener transiciones ε."
                 )
 
-
-
-        # Símbolo normal
-
         elif simbolo not in self.alfabeto:
 
             raise ValueError(
                 f"El símbolo '{simbolo}' no pertenece al alfabeto."
             )
 
-
-
         clave = (
             origen,
             simbolo
         )
 
-
-
-        # ---------------------------------
         # AFN
-        # ---------------------------------
-
         if self.tipo == "AFN":
 
             if clave not in self.transiciones:
@@ -228,19 +184,13 @@ class Automata:
                     clave
                 ] = set()
 
-
             self.transiciones[
                 clave
             ].add(
                 destino
             )
 
-
-
-        # ---------------------------------
         # AFD
-        # ---------------------------------
-
         else:
 
             if clave in self.transiciones:
@@ -249,26 +199,22 @@ class Automata:
                     clave
                 ]
 
-
-                # Si es exactamente la misma transición,
-                # simplemente no hacemos nada.
+                # Misma transición:
+                # no es necesario duplicarla
                 if destino_actual == destino:
 
                     return
 
-
                 raise ValueError(
-                    f"El AFD ya posee la transición "
-                    f"{origen} --{simbolo}--> {destino_actual}. "
+                    f"Ya existe la transición "
+                    f"{origen} --{simbolo}--> {destino_actual}.\n"
                     "Un AFD no puede tener dos destinos "
                     "para el mismo estado y símbolo."
                 )
 
-
             self.transiciones[
                 clave
             ] = destino
-
 
 
     # ---------------------------------
@@ -282,22 +228,31 @@ class Automata:
         destino=None
     ):
 
+        # IMPORTANTE:
+        # Treeview puede devolver 0 y 1 como int.
+        # Aquí convertimos TODO nuevamente a str.
+        origen = str(origen).strip()
+        simbolo = str(simbolo).strip()
+
+        if destino is not None:
+
+            destino = str(
+                destino
+            ).strip()
+
         clave = (
             origen,
             simbolo
         )
 
-
         if clave not in self.transiciones:
 
             raise ValueError(
-                "La transición seleccionada no existe."
+                f"No existe la transición "
+                f"({origen}, {simbolo})."
             )
 
-
-
         # AFN
-
         if self.tipo == "AFN":
 
             if destino is None:
@@ -306,38 +261,34 @@ class Automata:
                     "Debe indicar el destino de la transición AFN."
                 )
 
+            destinos = self.transiciones[
+                clave
+            ]
 
-            if destino not in self.transiciones[clave]:
+            if destino not in destinos:
 
                 raise ValueError(
-                    "La transición seleccionada no existe."
+                    f"No existe la transición "
+                    f"{origen} --{simbolo}--> {destino}."
                 )
 
-
-            self.transiciones[
-                clave
-            ].remove(
+            destinos.remove(
                 destino
             )
 
-
-            # Si ya no existen destinos
-            if not self.transiciones[clave]:
+            # Si ya no quedan destinos
+            if not destinos:
 
                 del self.transiciones[
                     clave
                 ]
 
-
-
         # AFD
-
         else:
 
             del self.transiciones[
                 clave
             ]
-
 
 
     # ---------------------------------
@@ -350,11 +301,13 @@ class Automata:
         simbolo
     ):
 
+        estado = str(estado).strip()
+        simbolo = str(simbolo).strip()
+
         clave = (
             estado,
             simbolo
         )
-
 
         return self.transiciones.get(
             clave,
@@ -362,20 +315,13 @@ class Automata:
         )
 
 
-
     # ---------------------------------
-    # Validar autómata completo
+    # Validar
     # ---------------------------------
 
     def validar(self):
 
         errores = []
-
-
-
-        # ---------------------------------
-        # Estados
-        # ---------------------------------
 
         if not self.estados:
 
@@ -383,18 +329,12 @@ class Automata:
                 "El autómata no contiene estados."
             )
 
-
-
-        # ---------------------------------
         # Estado inicial
-        # ---------------------------------
-
         if self.estado_inicial is None:
 
             errores.append(
                 "No existe estado inicial."
             )
-
 
         elif self.estado_inicial not in self.estados:
 
@@ -403,12 +343,7 @@ class Automata:
                 "no pertenece al conjunto de estados."
             )
 
-
-
-        # ---------------------------------
         # Estados finales
-        # ---------------------------------
-
         for estado in self.estados_finales:
 
             if estado not in self.estados:
@@ -417,39 +352,24 @@ class Automata:
                     f"El estado final '{estado}' no existe."
                 )
 
-
-
-        # ---------------------------------
-        # Alfabeto
-        # ---------------------------------
-
+        # ε jamás pertenece a Σ
         if "ε" in self.alfabeto:
 
             errores.append(
                 "ε no debe pertenecer al alfabeto."
             )
 
-
-
-        # ---------------------------------
         # Transiciones
-        # ---------------------------------
-
         for (
             origen,
             simbolo
         ), destino in self.transiciones.items():
-
 
             if origen not in self.estados:
 
                 errores.append(
                     f"El estado origen '{origen}' no existe."
                 )
-
-
-
-            # epsilon
 
             if simbolo == "ε":
 
@@ -459,7 +379,6 @@ class Automata:
                         "Un AFD no puede contener transiciones ε."
                     )
 
-
             elif simbolo not in self.alfabeto:
 
                 errores.append(
@@ -467,12 +386,7 @@ class Automata:
                     "no pertenece al alfabeto."
                 )
 
-
-
-            # ---------------------------------
             # AFN
-            # ---------------------------------
-
             if self.tipo == "AFN":
 
                 if not isinstance(
@@ -487,7 +401,6 @@ class Automata:
 
                     continue
 
-
                 for estado_destino in destino:
 
                     if estado_destino not in self.estados:
@@ -496,12 +409,7 @@ class Automata:
                             f"El destino '{estado_destino}' no existe."
                         )
 
-
-
-            # ---------------------------------
             # AFD
-            # ---------------------------------
-
             else:
 
                 if isinstance(
@@ -514,21 +422,17 @@ class Automata:
                         "tiene múltiples destinos en un AFD."
                     )
 
-
                 elif destino not in self.estados:
 
                     errores.append(
                         f"El destino '{destino}' no existe."
                     )
 
-
-
         return errores
 
 
-
     # ---------------------------------
-    # Comprobar si el autómata es válido
+    # Es válido
     # ---------------------------------
 
     def es_valido(self):
@@ -538,9 +442,8 @@ class Automata:
         ) == 0
 
 
-
     # ---------------------------------
-    # Mostrar información
+    # Mostrar
     # ---------------------------------
 
     def mostrar(self):
@@ -577,7 +480,6 @@ class Automata:
         print(
             "Transiciones δ:"
         )
-
 
         for transicion, destino in self.transiciones.items():
 

@@ -6,19 +6,17 @@ import math
 class DibujadorAutomata:
 
 
-    def __init__(self, ventana_padre, automata):
+    def __init__(
+        self,
+        ventana_padre,
+        automata
+    ):
 
         self.automata = automata
 
-        # Radio visual de cada estado
         self.radio_estado = 38
 
-        # Posiciones de los estados
         self.posiciones = {}
-
-        # ---------------------------------
-        # Ventana
-        # ---------------------------------
 
         self.ventana = tk.Toplevel(
             ventana_padre
@@ -37,10 +35,19 @@ class DibujadorAutomata:
             550
         )
 
-        # ---------------------------------
-        # Barra superior
-        # ---------------------------------
+        # Modal
+        self.ventana.transient(
+            ventana_padre
+        )
 
+        self.ventana.grab_set()
+
+        self.ventana.protocol(
+            "WM_DELETE_WINDOW",
+            self.cerrar
+        )
+
+        # Barra superior
         barra = ttk.Frame(
             self.ventana
         )
@@ -66,12 +73,17 @@ class DibujadorAutomata:
             command=self.actualizar
         ).pack(
             side="right",
-            padx=10
+            padx=5
         )
 
-        # ---------------------------------
-        # Información
-        # ---------------------------------
+        ttk.Button(
+            barra,
+            text="Cerrar",
+            command=self.cerrar
+        ).pack(
+            side="right",
+            padx=5
+        )
 
         self.etiqueta_info = ttk.Label(
             barra,
@@ -82,10 +94,6 @@ class DibujadorAutomata:
             side="right",
             padx=20
         )
-
-        # ---------------------------------
-        # Marco Canvas
-        # ---------------------------------
 
         marco_canvas = ttk.Frame(
             self.ventana
@@ -98,8 +106,6 @@ class DibujadorAutomata:
             pady=(0, 10)
         )
 
-        # Scroll vertical
-
         scroll_y = ttk.Scrollbar(
             marco_canvas,
             orient="vertical"
@@ -110,8 +116,6 @@ class DibujadorAutomata:
             fill="y"
         )
 
-        # Scroll horizontal
-
         scroll_x = ttk.Scrollbar(
             marco_canvas,
             orient="horizontal"
@@ -121,8 +125,6 @@ class DibujadorAutomata:
             side="bottom",
             fill="x"
         )
-
-        # Canvas
 
         self.canvas = tk.Canvas(
             marco_canvas,
@@ -150,14 +152,14 @@ class DibujadorAutomata:
             command=self.canvas.yview
         )
 
-        # Dibujar inicialmente
-
         self.actualizar()
 
+        self.ventana.focus_force()
 
-    # =====================================================
-    # ACTUALIZAR
-    # =====================================================
+
+    # ---------------------------------
+    # Actualizar
+    # ---------------------------------
 
     def actualizar(self):
 
@@ -183,19 +185,13 @@ class DibujadorAutomata:
 
             return
 
-        # Generar posiciones
-
         self.posiciones = (
             self.generar_posiciones()
         )
 
-        # Agrupar transiciones
-
         transiciones = (
             self.agrupar_transiciones()
         )
-
-        # Dibujar primero las transiciones
 
         for (
             origen,
@@ -227,9 +223,6 @@ class DibujadorAutomata:
                     existe_reversa
                 )
 
-        # Dibujar estados al final para que
-        # las líneas queden detrás de ellos
-
         for estado in sorted(
             self.automata.estados
         ):
@@ -239,9 +232,9 @@ class DibujadorAutomata:
             )
 
 
-    # =====================================================
-    # GENERAR POSICIONES
-    # =====================================================
+    # ---------------------------------
+    # Posiciones
+    # ---------------------------------
 
     def generar_posiciones(self):
 
@@ -258,8 +251,6 @@ class DibujadorAutomata:
         centro_x = 750
         centro_y = 450
 
-        # Caso de un solo estado
-
         if cantidad == 1:
 
             posiciones[
@@ -270,8 +261,6 @@ class DibujadorAutomata:
             )
 
             return posiciones
-
-        # Radio de distribución
 
         radio_distribucion = max(
             190,
@@ -288,8 +277,6 @@ class DibujadorAutomata:
                 * indice
                 / cantidad
             )
-
-            # Iniciar desde arriba
 
             angulo -= (
                 math.pi / 2
@@ -317,9 +304,9 @@ class DibujadorAutomata:
         return posiciones
 
 
-    # =====================================================
-    # AGRUPAR TRANSICIONES
-    # =====================================================
+    # ---------------------------------
+    # Agrupar transiciones
+    # ---------------------------------
 
     def agrupar_transiciones(self):
 
@@ -330,26 +317,15 @@ class DibujadorAutomata:
             simbolo
         ), destino in self.automata.transiciones.items():
 
-            # ---------------------------------
-            # AFN
-            # ---------------------------------
-
             if self.automata.tipo == "AFN":
 
                 destinos = destino
-
-            # ---------------------------------
-            # AFD
-            # ---------------------------------
 
             else:
 
                 destinos = {
                     destino
                 }
-
-            # Agrupar símbolos que tengan
-            # el mismo origen y destino
 
             for estado_destino in destinos:
 
@@ -373,21 +349,20 @@ class DibujadorAutomata:
         return agrupadas
 
 
-    # =====================================================
-    # DIBUJAR ESTADO
-    # =====================================================
+    # ---------------------------------
+    # Estado
+    # ---------------------------------
 
-    def dibujar_estado(self, estado):
+    def dibujar_estado(
+        self,
+        estado
+    ):
 
         x, y = self.posiciones[
             estado
         ]
 
         radio = self.radio_estado
-
-        # ---------------------------------
-        # Estado final
-        # ---------------------------------
 
         if estado in self.automata.estados_finales:
 
@@ -399,8 +374,6 @@ class DibujadorAutomata:
                 width=2
             )
 
-        # Círculo principal
-
         self.canvas.create_oval(
             x - radio,
             y - radio,
@@ -408,8 +381,6 @@ class DibujadorAutomata:
             y + radio,
             width=2
         )
-
-        # Nombre
 
         self.canvas.create_text(
             x,
@@ -421,10 +392,6 @@ class DibujadorAutomata:
                 "bold"
             )
         )
-
-        # ---------------------------------
-        # Estado inicial
-        # ---------------------------------
 
         if (
             estado
@@ -442,16 +409,16 @@ class DibujadorAutomata:
             )
 
             self.canvas.create_text(
-                x - radio - 90,
+                x - radio - 95,
                 y,
                 text="Inicio",
                 font=("Arial", 10)
             )
 
 
-    # =====================================================
-    # DIBUJAR TRANSICIÓN NORMAL
-    # =====================================================
+    # ---------------------------------
+    # Transición
+    # ---------------------------------
 
     def dibujar_transicion(
         self,
@@ -481,15 +448,10 @@ class DibujadorAutomata:
 
             return
 
-        # Vector unitario
-
         ux = dx / distancia
         uy = dy / distancia
 
         radio = self.radio_estado
-
-        # Evitamos que la línea empiece
-        # en el centro del círculo
 
         inicio_x = (
             x1
@@ -511,16 +473,10 @@ class DibujadorAutomata:
             - uy * radio
         )
 
-        # ---------------------------------
-        # Flechas en ambas direcciones
-        # ---------------------------------
+        perpendicular_x = -uy
+        perpendicular_y = ux
 
         if bidireccional:
-
-            # Vector perpendicular
-
-            perpendicular_x = -uy
-            perpendicular_y = ux
 
             curvatura = 55
 
@@ -549,8 +505,6 @@ class DibujadorAutomata:
                 width=2
             )
 
-            # Etiqueta
-
             etiqueta_x = (
                 control_x
                 + perpendicular_x * 15
@@ -560,10 +514,6 @@ class DibujadorAutomata:
                 control_y
                 + perpendicular_y * 15
             )
-
-        # ---------------------------------
-        # Flecha normal
-        # ---------------------------------
 
         else:
 
@@ -576,8 +526,6 @@ class DibujadorAutomata:
                 width=2
             )
 
-            # Punto medio
-
             etiqueta_x = (
                 inicio_x + fin_x
             ) / 2
@@ -585,13 +533,6 @@ class DibujadorAutomata:
             etiqueta_y = (
                 inicio_y + fin_y
             ) / 2
-
-            # Desplazar texto para que
-            # no quede exactamente encima
-            # de la línea
-
-            perpendicular_x = -uy
-            perpendicular_y = ux
 
             etiqueta_x += (
                 perpendicular_x * 18
@@ -601,8 +542,6 @@ class DibujadorAutomata:
                 perpendicular_y * 18
             )
 
-        # Símbolos
-
         self.dibujar_etiqueta(
             etiqueta_x,
             etiqueta_y,
@@ -610,9 +549,9 @@ class DibujadorAutomata:
         )
 
 
-    # =====================================================
-    # DIBUJAR BUCLE
-    # =====================================================
+    # ---------------------------------
+    # Bucle
+    # ---------------------------------
 
     def dibujar_bucle(
         self,
@@ -625,9 +564,6 @@ class DibujadorAutomata:
         ]
 
         radio = self.radio_estado
-
-        # Creamos un bucle sobre el estado
-        # mediante una línea suavizada
 
         inicio_x = (
             x - radio * 0.55
@@ -683,9 +619,9 @@ class DibujadorAutomata:
         )
 
 
-    # =====================================================
-    # ETIQUETA DE TRANSICIÓN
-    # =====================================================
+    # ---------------------------------
+    # Etiqueta
+    # ---------------------------------
 
     def dibujar_etiqueta(
         self,
@@ -694,16 +630,12 @@ class DibujadorAutomata:
         texto
     ):
 
-        # Medida aproximada del fondo
         ancho = max(
             24,
             len(texto) * 8
         )
 
         alto = 20
-
-        # Fondo blanco para que el texto
-        # no quede atravesado por líneas
 
         self.canvas.create_rectangle(
             x - ancho / 2,
@@ -724,3 +656,20 @@ class DibujadorAutomata:
                 "bold"
             )
         )
+
+
+    # ---------------------------------
+    # Cerrar
+    # ---------------------------------
+
+    def cerrar(self):
+
+        try:
+
+            self.ventana.grab_release()
+
+        except tk.TclError:
+
+            pass
+
+        self.ventana.destroy()

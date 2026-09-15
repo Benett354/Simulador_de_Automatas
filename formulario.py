@@ -15,34 +15,42 @@ class FormularioAutomata:
 
         self.callback = callback
 
-
         self.ventana = tk.Toplevel(
             ventana_padre
         )
-
 
         self.ventana.title(
             "Crear Autómata"
         )
 
-
         self.ventana.geometry(
             "520x520"
         )
-
 
         self.ventana.resizable(
             False,
             False
         )
 
+        # Modal
+        self.ventana.transient(
+            ventana_padre
+        )
+
+        self.ventana.grab_set()
+
+        self.ventana.protocol(
+            "WM_DELETE_WINDOW",
+            self.cerrar
+        )
 
         self.crear_formulario()
 
+        self.ventana.focus_force()
 
 
     # ---------------------------------
-    # Crear formulario
+    # Formulario
     # ---------------------------------
 
     def crear_formulario(self):
@@ -53,23 +61,15 @@ class FormularioAutomata:
             font=("Arial", 18, "bold")
         )
 
-
         titulo.pack(
             pady=15
         )
 
-
-
-        # ---------------------------------
         # Tipo
-        # ---------------------------------
-
         tk.Label(
             self.ventana,
             text="Tipo de autómata:"
         ).pack()
-
-
 
         self.tipo = ttk.Combobox(
             self.ventana,
@@ -81,40 +81,28 @@ class FormularioAutomata:
             width=37
         )
 
-
         self.tipo.current(
             0
         )
-
 
         self.tipo.pack(
             pady=5
         )
 
-
-
-        # ---------------------------------
         # Estados
-        # ---------------------------------
-
         tk.Label(
             self.ventana,
             text="Estados separados por coma:"
         ).pack()
-
-
 
         self.estados = tk.Entry(
             self.ventana,
             width=40
         )
 
-
         self.estados.pack(
             pady=5
         )
-
-
 
         tk.Label(
             self.ventana,
@@ -122,12 +110,7 @@ class FormularioAutomata:
             fg="gray"
         ).pack()
 
-
-
-        # ---------------------------------
         # Alfabeto
-        # ---------------------------------
-
         tk.Label(
             self.ventana,
             text="Alfabeto separado por coma:"
@@ -135,19 +118,14 @@ class FormularioAutomata:
             pady=(10, 0)
         )
 
-
-
         self.alfabeto = tk.Entry(
             self.ventana,
             width=40
         )
 
-
         self.alfabeto.pack(
             pady=5
         )
-
-
 
         tk.Label(
             self.ventana,
@@ -155,12 +133,7 @@ class FormularioAutomata:
             fg="gray"
         ).pack()
 
-
-
-        # ---------------------------------
         # Inicial
-        # ---------------------------------
-
         tk.Label(
             self.ventana,
             text="Estado inicial:"
@@ -168,24 +141,16 @@ class FormularioAutomata:
             pady=(10, 0)
         )
 
-
-
         self.inicial = tk.Entry(
             self.ventana,
             width=40
         )
 
-
         self.inicial.pack(
             pady=5
         )
 
-
-
-        # ---------------------------------
         # Finales
-        # ---------------------------------
-
         tk.Label(
             self.ventana,
             text="Estados finales separados por coma:"
@@ -193,32 +158,46 @@ class FormularioAutomata:
             pady=(10, 0)
         )
 
-
-
         self.finales = tk.Entry(
             self.ventana,
             width=40
         )
 
-
         self.finales.pack(
             pady=5
         )
 
+        marco_botones = ttk.Frame(
+            self.ventana
+        )
 
-
-        ttk.Button(
-            self.ventana,
-            text="Crear Autómata",
-            command=self.crear
-        ).pack(
+        marco_botones.pack(
             pady=25
         )
 
+        ttk.Button(
+            marco_botones,
+            text="Crear Autómata",
+            command=self.crear
+        ).grid(
+            row=0,
+            column=0,
+            padx=10
+        )
+
+        ttk.Button(
+            marco_botones,
+            text="Cancelar",
+            command=self.cerrar
+        ).grid(
+            row=0,
+            column=1,
+            padx=10
+        )
 
 
     # ---------------------------------
-    # Separar entrada por comas
+    # Separar
     # ---------------------------------
 
     def separar(self, texto):
@@ -230,18 +209,13 @@ class FormularioAutomata:
         ]
 
 
-
     # ---------------------------------
-    # Crear autómata
+    # Crear
     # ---------------------------------
 
     def crear(self):
 
         try:
-
-            # ---------------------------------
-            # Obtener datos
-            # ---------------------------------
 
             tipo = self.tipo.get().strip()
 
@@ -259,22 +233,16 @@ class FormularioAutomata:
                 self.finales.get()
             )
 
-
-
-            # ---------------------------------
-            # Validaciones básicas
-            # ---------------------------------
-
+            # Estados
             if not lista_estados:
 
                 messagebox.showerror(
                     "Error",
-                    "Debe ingresar al menos un estado."
+                    "Debe ingresar al menos un estado.",
+                    parent=self.ventana
                 )
 
                 return
-
-
 
             if len(lista_estados) != len(
                 set(lista_estados)
@@ -282,23 +250,22 @@ class FormularioAutomata:
 
                 messagebox.showerror(
                     "Error",
-                    "Existen estados repetidos."
+                    "Existen estados repetidos.",
+                    parent=self.ventana
                 )
 
                 return
 
-
-
+            # Alfabeto
             if not lista_simbolos:
 
                 messagebox.showerror(
                     "Error",
-                    "Debe ingresar al menos un símbolo en el alfabeto."
+                    "Debe ingresar al menos un símbolo.",
+                    parent=self.ventana
                 )
 
                 return
-
-
 
             if len(lista_simbolos) != len(
                 set(lista_simbolos)
@@ -306,49 +273,49 @@ class FormularioAutomata:
 
                 messagebox.showerror(
                     "Error",
-                    "Existen símbolos repetidos."
+                    "Existen símbolos repetidos.",
+                    parent=self.ventana
                 )
 
                 return
-
-
 
             if "ε" in lista_simbolos:
 
                 messagebox.showerror(
                     "Error",
-                    "ε no se escribe dentro del alfabeto.\n\n"
-                    "En un AFN aparecerá automáticamente "
-                    "en el editor de transiciones."
+                    (
+                        "ε no se escribe dentro del alfabeto.\n\n"
+                        "En un AFN aparecerá automáticamente "
+                        "en el editor de transiciones."
+                    ),
+                    parent=self.ventana
                 )
 
                 return
 
-
-
+            # Inicial
             if not inicial:
 
                 messagebox.showerror(
                     "Error",
-                    "Debe indicar el estado inicial."
+                    "Debe indicar el estado inicial.",
+                    parent=self.ventana
                 )
 
                 return
-
-
 
             if inicial not in lista_estados:
 
                 messagebox.showerror(
                     "Error",
                     f"El estado inicial '{inicial}' "
-                    "no está en la lista de estados."
+                    "no pertenece a los estados.",
+                    parent=self.ventana
                 )
 
                 return
 
-
-
+            # Finales
             for estado_final in lista_finales:
 
                 if estado_final not in lista_estados:
@@ -356,24 +323,16 @@ class FormularioAutomata:
                     messagebox.showerror(
                         "Error",
                         f"El estado final '{estado_final}' "
-                        "no está en la lista de estados."
+                        "no pertenece a los estados.",
+                        parent=self.ventana
                     )
 
                     return
 
-
-
-            # ---------------------------------
-            # Crear objeto
-            # ---------------------------------
-
+            # Construcción
             automata = Automata(
                 tipo
             )
-
-
-
-            # Estados
 
             for estado in lista_estados:
 
@@ -381,27 +340,15 @@ class FormularioAutomata:
                     estado
                 )
 
-
-
-            # Alfabeto
-
             for simbolo in lista_simbolos:
 
                 automata.agregar_simbolo(
                     simbolo
                 )
 
-
-
-            # Inicial
-
             automata.establecer_estado_inicial(
                 inicial
             )
-
-
-
-            # Finales
 
             for estado_final in lista_finales:
 
@@ -409,14 +356,7 @@ class FormularioAutomata:
                     estado_final
                 )
 
-
-
-            # ---------------------------------
-            # Validación final
-            # ---------------------------------
-
             errores = automata.validar()
-
 
             if errores:
 
@@ -424,44 +364,53 @@ class FormularioAutomata:
                     "Error",
                     "\n".join(
                         errores
-                    )
+                    ),
+                    parent=self.ventana
                 )
 
                 return
-
-
-
-            # Mandar a interfaz principal
 
             self.callback(
                 automata
             )
 
-
-
             messagebox.showinfo(
                 "Correcto",
-                "Autómata creado correctamente."
+                "Autómata creado correctamente.",
+                parent=self.ventana
             )
 
-
-
-            self.ventana.destroy()
-
-
+            self.cerrar()
 
         except ValueError as error:
 
             messagebox.showerror(
                 "Datos inválidos",
-                str(error)
+                str(error),
+                parent=self.ventana
             )
-
-
 
         except Exception as error:
 
             messagebox.showerror(
                 "Error inesperado",
-                str(error)
+                str(error),
+                parent=self.ventana
             )
+
+
+    # ---------------------------------
+    # Cerrar
+    # ---------------------------------
+
+    def cerrar(self):
+
+        try:
+
+            self.ventana.grab_release()
+
+        except tk.TclError:
+
+            pass
+
+        self.ventana.destroy()
