@@ -1,6 +1,6 @@
 import tkinter as tk
+from tkinter import ttk
 import math
-
 
 
 class DibujadorAutomata:
@@ -8,259 +8,719 @@ class DibujadorAutomata:
 
     def __init__(self, ventana_padre, automata):
 
-
         self.automata = automata
 
+        # Radio visual de cada estado
+        self.radio_estado = 38
+
+        # Posiciones de los estados
+        self.posiciones = {}
+
+        # ---------------------------------
+        # Ventana
+        # ---------------------------------
 
         self.ventana = tk.Toplevel(
             ventana_padre
         )
 
-
         self.ventana.title(
             "Visualización del Autómata"
         )
 
-
         self.ventana.geometry(
-            "900x600"
+            "1050x700"
         )
 
+        self.ventana.minsize(
+            800,
+            550
+        )
+
+        # ---------------------------------
+        # Barra superior
+        # ---------------------------------
+
+        barra = ttk.Frame(
+            self.ventana
+        )
+
+        barra.pack(
+            fill="x",
+            padx=10,
+            pady=10
+        )
+
+        ttk.Label(
+            barra,
+            text="DIAGRAMA DEL AUTÓMATA",
+            font=("Arial", 16, "bold")
+        ).pack(
+            side="left",
+            padx=10
+        )
+
+        ttk.Button(
+            barra,
+            text="Actualizar diagrama",
+            command=self.actualizar
+        ).pack(
+            side="right",
+            padx=10
+        )
+
+        # ---------------------------------
+        # Información
+        # ---------------------------------
+
+        self.etiqueta_info = ttk.Label(
+            barra,
+            text=""
+        )
+
+        self.etiqueta_info.pack(
+            side="right",
+            padx=20
+        )
+
+        # ---------------------------------
+        # Marco Canvas
+        # ---------------------------------
+
+        marco_canvas = ttk.Frame(
+            self.ventana
+        )
+
+        marco_canvas.pack(
+            expand=True,
+            fill="both",
+            padx=10,
+            pady=(0, 10)
+        )
+
+        # Scroll vertical
+
+        scroll_y = ttk.Scrollbar(
+            marco_canvas,
+            orient="vertical"
+        )
+
+        scroll_y.pack(
+            side="right",
+            fill="y"
+        )
+
+        # Scroll horizontal
+
+        scroll_x = ttk.Scrollbar(
+            marco_canvas,
+            orient="horizontal"
+        )
+
+        scroll_x.pack(
+            side="bottom",
+            fill="x"
+        )
+
+        # Canvas
 
         self.canvas = tk.Canvas(
-            self.ventana,
-            bg="white"
+            marco_canvas,
+            background="white",
+            xscrollcommand=scroll_x.set,
+            yscrollcommand=scroll_y.set,
+            scrollregion=(
+                0,
+                0,
+                1600,
+                1000
+            )
         )
-
 
         self.canvas.pack(
             expand=True,
             fill="both"
         )
 
+        scroll_x.config(
+            command=self.canvas.xview
+        )
 
-        self.dibujar()
+        scroll_y.config(
+            command=self.canvas.yview
+        )
 
+        # Dibujar inicialmente
 
-
-    # ---------------------------------
-    # Dibujar autómata completo
-    # ---------------------------------
-
-    def dibujar(self):
-
-
-        posiciones = self.generar_posiciones()
+        self.actualizar()
 
 
+    # =====================================================
+    # ACTUALIZAR
+    # =====================================================
 
-        # Dibujar transiciones primero
+    def actualizar(self):
 
-        for transicion, destino in self.automata.transiciones.items():
+        self.canvas.delete(
+            "all"
+        )
+
+        self.etiqueta_info.config(
+            text=(
+                f"Tipo: {self.automata.tipo}   |   "
+                f"Estados: {len(self.automata.estados)}"
+            )
+        )
+
+        if not self.automata.estados:
+
+            self.canvas.create_text(
+                500,
+                300,
+                text="El autómata no contiene estados.",
+                font=("Arial", 15)
+            )
+
+            return
+
+        # Generar posiciones
+
+        self.posiciones = (
+            self.generar_posiciones()
+        )
+
+        # Agrupar transiciones
+
+        transiciones = (
+            self.agrupar_transiciones()
+        )
+
+        # Dibujar primero las transiciones
+
+        for (
+            origen,
+            destino
+        ), simbolos in transiciones.items():
+
+            texto_simbolos = ", ".join(
+                sorted(simbolos)
+            )
+
+            if origen == destino:
+
+                self.dibujar_bucle(
+                    origen,
+                    texto_simbolos
+                )
+
+            else:
+
+                existe_reversa = (
+                    destino,
+                    origen
+                ) in transiciones
+
+                self.dibujar_transicion(
+                    origen,
+                    destino,
+                    texto_simbolos,
+                    existe_reversa
+                )
+
+        # Dibujar estados al final para que
+        # las líneas queden detrás de ellos
+
+        for estado in sorted(
+            self.automata.estados
+        ):
+
+            self.dibujar_estado(
+                estado
+            )
 
 
-            origen, simbolo = transicion
+    # =====================================================
+    # GENERAR POSICIONES
+    # =====================================================
+
+    def generar_posiciones(self):
+
+        posiciones = {}
+
+        estados = sorted(
+            self.automata.estados
+        )
+
+        cantidad = len(
+            estados
+        )
+
+        centro_x = 750
+        centro_y = 450
+
+        # Caso de un solo estado
+
+        if cantidad == 1:
+
+            posiciones[
+                estados[0]
+            ] = (
+                centro_x,
+                centro_y
+            )
+
+            return posiciones
+
+        # Radio de distribución
+
+        radio_distribucion = max(
+            190,
+            cantidad * 35
+        )
+
+        for indice, estado in enumerate(
+            estados
+        ):
+
+            angulo = (
+                2
+                * math.pi
+                * indice
+                / cantidad
+            )
+
+            # Iniciar desde arriba
+
+            angulo -= (
+                math.pi / 2
+            )
+
+            x = (
+                centro_x
+                + radio_distribucion
+                * math.cos(angulo)
+            )
+
+            y = (
+                centro_y
+                + radio_distribucion
+                * math.sin(angulo)
+            )
+
+            posiciones[
+                estado
+            ] = (
+                x,
+                y
+            )
+
+        return posiciones
 
 
+    # =====================================================
+    # AGRUPAR TRANSICIONES
+    # =====================================================
+
+    def agrupar_transiciones(self):
+
+        agrupadas = {}
+
+        for (
+            origen,
+            simbolo
+        ), destino in self.automata.transiciones.items():
+
+            # ---------------------------------
+            # AFN
+            # ---------------------------------
 
             if self.automata.tipo == "AFN":
 
                 destinos = destino
 
+            # ---------------------------------
+            # AFD
+            # ---------------------------------
 
             else:
 
-                destinos = [destino]
+                destinos = {
+                    destino
+                }
 
-
+            # Agrupar símbolos que tengan
+            # el mismo origen y destino
 
             for estado_destino in destinos:
 
+                clave = (
+                    origen,
+                    estado_destino
+                )
 
-                self.dibujar_transicion(
-                    posiciones[origen],
-                    posiciones[estado_destino],
+                if clave not in agrupadas:
+
+                    agrupadas[
+                        clave
+                    ] = set()
+
+                agrupadas[
+                    clave
+                ].add(
                     simbolo
                 )
 
+        return agrupadas
 
 
-        # Dibujar estados
+    # =====================================================
+    # DIBUJAR ESTADO
+    # =====================================================
 
-        for estado, posicion in posiciones.items():
+    def dibujar_estado(self, estado):
 
+        x, y = self.posiciones[
+            estado
+        ]
 
-            self.dibujar_estado(
-                estado,
-                posicion
-            )
+        radio = self.radio_estado
 
-
-
-    # ---------------------------------
-    # Generar posiciones
-    # ---------------------------------
-
-    def generar_posiciones(self):
-
-
-        posiciones = {}
-
-
-        estados = list(
-            self.automata.estados
-        )
-
-
-        centro_x = 450
-
-        centro_y = 280
-
-
-        radio = 180
-
-
-
-        cantidad = len(estados)
-
-
-
-        for i, estado in enumerate(estados):
-
-
-            angulo = (
-                2 *
-                math.pi *
-                i /
-                cantidad
-            )
-
-
-            x = centro_x + radio * math.cos(
-                angulo
-            )
-
-
-            y = centro_y + radio * math.sin(
-                angulo
-            )
-
-
-            posiciones[estado] = (
-                x,
-                y
-            )
-
-
-
-        return posiciones
-
-
-
-    # ---------------------------------
-    # Dibujar estado
-    # ---------------------------------
-
-    def dibujar_estado(self, estado, posicion):
-
-
-        x,y = posicion
-
-
-        tamaño = 40
-
-
-
-        # Estado final doble círculo
+        # ---------------------------------
+        # Estado final
+        # ---------------------------------
 
         if estado in self.automata.estados_finales:
 
-
             self.canvas.create_oval(
-                x-tamaño-5,
-                y-tamaño-5,
-                x+tamaño+5,
-                y+tamaño+5
+                x - radio - 6,
+                y - radio - 6,
+                x + radio + 6,
+                y + radio + 6,
+                width=2
             )
 
-
+        # Círculo principal
 
         self.canvas.create_oval(
-            x-tamaño,
-            y-tamaño,
-            x+tamaño,
-            y+tamaño
+            x - radio,
+            y - radio,
+            x + radio,
+            y + radio,
+            width=2
         )
 
-
+        # Nombre
 
         self.canvas.create_text(
             x,
             y,
             text=estado,
-            font=("Arial",14,"bold")
+            font=(
+                "Arial",
+                13,
+                "bold"
+            )
         )
 
+        # ---------------------------------
+        # Estado inicial
+        # ---------------------------------
 
-
-        # Flecha de estado inicial
-
-        if estado == self.automata.estado_inicial:
-
+        if (
+            estado
+            ==
+            self.automata.estado_inicial
+        ):
 
             self.canvas.create_line(
-                x-100,
+                x - radio - 75,
                 y,
-                x-tamaño,
+                x - radio - 5,
                 y,
-                arrow=tk.LAST
+                arrow=tk.LAST,
+                width=2
+            )
+
+            self.canvas.create_text(
+                x - radio - 90,
+                y,
+                text="Inicio",
+                font=("Arial", 10)
             )
 
 
-
-    # ---------------------------------
-    # Dibujar transición
-    # ---------------------------------
+    # =====================================================
+    # DIBUJAR TRANSICIÓN NORMAL
+    # =====================================================
 
     def dibujar_transicion(
         self,
         origen,
         destino,
-        simbolo
+        simbolos,
+        bidireccional=False
     ):
 
+        x1, y1 = self.posiciones[
+            origen
+        ]
 
-        x1,y1 = origen
+        x2, y2 = self.posiciones[
+            destino
+        ]
 
-        x2,y2 = destino
+        dx = x2 - x1
+        dy = y2 - y1
+
+        distancia = math.sqrt(
+            dx ** 2
+            + dy ** 2
+        )
+
+        if distancia == 0:
+
+            return
+
+        # Vector unitario
+
+        ux = dx / distancia
+        uy = dy / distancia
+
+        radio = self.radio_estado
+
+        # Evitamos que la línea empiece
+        # en el centro del círculo
+
+        inicio_x = (
+            x1
+            + ux * radio
+        )
+
+        inicio_y = (
+            y1
+            + uy * radio
+        )
+
+        fin_x = (
+            x2
+            - ux * radio
+        )
+
+        fin_y = (
+            y2
+            - uy * radio
+        )
+
+        # ---------------------------------
+        # Flechas en ambas direcciones
+        # ---------------------------------
+
+        if bidireccional:
+
+            # Vector perpendicular
+
+            perpendicular_x = -uy
+            perpendicular_y = ux
+
+            curvatura = 55
+
+            control_x = (
+                (x1 + x2) / 2
+                + perpendicular_x
+                * curvatura
+            )
+
+            control_y = (
+                (y1 + y2) / 2
+                + perpendicular_y
+                * curvatura
+            )
+
+            self.canvas.create_line(
+                inicio_x,
+                inicio_y,
+                control_x,
+                control_y,
+                fin_x,
+                fin_y,
+                smooth=True,
+                splinesteps=25,
+                arrow=tk.LAST,
+                width=2
+            )
+
+            # Etiqueta
+
+            etiqueta_x = (
+                control_x
+                + perpendicular_x * 15
+            )
+
+            etiqueta_y = (
+                control_y
+                + perpendicular_y * 15
+            )
+
+        # ---------------------------------
+        # Flecha normal
+        # ---------------------------------
+
+        else:
+
+            self.canvas.create_line(
+                inicio_x,
+                inicio_y,
+                fin_x,
+                fin_y,
+                arrow=tk.LAST,
+                width=2
+            )
+
+            # Punto medio
+
+            etiqueta_x = (
+                inicio_x + fin_x
+            ) / 2
+
+            etiqueta_y = (
+                inicio_y + fin_y
+            ) / 2
+
+            # Desplazar texto para que
+            # no quede exactamente encima
+            # de la línea
+
+            perpendicular_x = -uy
+            perpendicular_y = ux
+
+            etiqueta_x += (
+                perpendicular_x * 18
+            )
+
+            etiqueta_y += (
+                perpendicular_y * 18
+            )
+
+        # Símbolos
+
+        self.dibujar_etiqueta(
+            etiqueta_x,
+            etiqueta_y,
+            simbolos
+        )
 
 
+    # =====================================================
+    # DIBUJAR BUCLE
+    # =====================================================
+
+    def dibujar_bucle(
+        self,
+        estado,
+        simbolos
+    ):
+
+        x, y = self.posiciones[
+            estado
+        ]
+
+        radio = self.radio_estado
+
+        # Creamos un bucle sobre el estado
+        # mediante una línea suavizada
+
+        inicio_x = (
+            x - radio * 0.55
+        )
+
+        inicio_y = (
+            y - radio * 0.8
+        )
+
+        fin_x = (
+            x + radio * 0.55
+        )
+
+        fin_y = (
+            y - radio * 0.8
+        )
+
+        control1_x = (
+            x - radio * 1.8
+        )
+
+        control1_y = (
+            y - radio * 2.3
+        )
+
+        control2_x = (
+            x + radio * 1.8
+        )
+
+        control2_y = (
+            y - radio * 2.3
+        )
 
         self.canvas.create_line(
-            x1,
-            y1,
-            x2,
-            y2,
+            inicio_x,
+            inicio_y,
+            control1_x,
+            control1_y,
+            control2_x,
+            control2_y,
+            fin_x,
+            fin_y,
+            smooth=True,
+            splinesteps=30,
             arrow=tk.LAST,
             width=2
         )
 
+        self.dibujar_etiqueta(
+            x,
+            y - radio * 2.4,
+            simbolos
+        )
 
 
-        medio_x = (
-            x1+x2
-        ) / 2
+    # =====================================================
+    # ETIQUETA DE TRANSICIÓN
+    # =====================================================
 
+    def dibujar_etiqueta(
+        self,
+        x,
+        y,
+        texto
+    ):
 
-        medio_y = (
-            y1+y2
-        ) / 2
+        # Medida aproximada del fondo
+        ancho = max(
+            24,
+            len(texto) * 8
+        )
 
+        alto = 20
 
+        # Fondo blanco para que el texto
+        # no quede atravesado por líneas
+
+        self.canvas.create_rectangle(
+            x - ancho / 2,
+            y - alto / 2,
+            x + ancho / 2,
+            y + alto / 2,
+            fill="white",
+            outline=""
+        )
 
         self.canvas.create_text(
-            medio_x,
-            medio_y-15,
-            text=simbolo,
-            font=("Arial",12,"bold")
+            x,
+            y,
+            text=texto,
+            font=(
+                "Arial",
+                11,
+                "bold"
+            )
         )
