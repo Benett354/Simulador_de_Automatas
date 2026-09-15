@@ -2,12 +2,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 
-
 class VentanaTransiciones:
 
 
-    def __init__(self, ventana_padre, automata):
-
+    def __init__(
+        self,
+        ventana_padre,
+        automata
+    ):
 
         self.automata = automata
 
@@ -23,7 +25,13 @@ class VentanaTransiciones:
 
 
         self.ventana.geometry(
-            "650x500"
+            "700x520"
+        )
+
+
+        self.ventana.minsize(
+            600,
+            450
         )
 
 
@@ -37,30 +45,46 @@ class VentanaTransiciones:
 
     def crear_interfaz(self):
 
-
-        titulo = tk.Label(
+        tk.Label(
             self.ventana,
             text="Editor de Transiciones",
-            font=("Arial",18,"bold")
-        )
-
-
-        titulo.pack(
+            font=("Arial", 18, "bold")
+        ).pack(
             pady=15
         )
 
 
 
-        marco = ttk.Frame(
-            self.ventana
+        tk.Label(
+            self.ventana,
+            text=f"Tipo actual: {self.automata.tipo}",
+            font=("Arial", 11)
+        ).pack()
+
+
+
+        marco = ttk.LabelFrame(
+            self.ventana,
+            text="Nueva transición"
         )
 
 
-        marco.pack()
+        marco.pack(
+            padx=20,
+            pady=15
+        )
 
 
 
+        estados = sorted(
+            self.automata.estados
+        )
+
+
+
+        # ---------------------------------
         # Origen
+        # ---------------------------------
 
         tk.Label(
             marco,
@@ -68,28 +92,32 @@ class VentanaTransiciones:
         ).grid(
             row=0,
             column=0,
-            padx=5,
-            pady=5
+            padx=10,
+            pady=8
         )
 
 
 
         self.origen = ttk.Combobox(
             marco,
-            values=list(self.automata.estados),
-            state="readonly"
+            values=estados,
+            state="readonly",
+            width=20
         )
 
 
         self.origen.grid(
             row=0,
-            column=1
+            column=1,
+            padx=10,
+            pady=8
         )
 
 
 
+        # ---------------------------------
         # Símbolo
-
+        # ---------------------------------
 
         tk.Label(
             marco,
@@ -97,40 +125,48 @@ class VentanaTransiciones:
         ).grid(
             row=1,
             column=0,
-            padx=5,
-            pady=5
+            padx=10,
+            pady=8
         )
 
 
 
-        simbolos = list(
+        simbolos = sorted(
             self.automata.alfabeto
         )
 
 
 
+        # ε solamente para AFN
+
         if self.automata.tipo == "AFN":
 
-            simbolos.append("ε")
+            simbolos.append(
+                "ε"
+            )
 
 
 
         self.simbolo = ttk.Combobox(
             marco,
             values=simbolos,
-            state="readonly"
+            state="readonly",
+            width=20
         )
 
 
         self.simbolo.grid(
             row=1,
-            column=1
+            column=1,
+            padx=10,
+            pady=8
         )
 
 
 
+        # ---------------------------------
         # Destino
-
+        # ---------------------------------
 
         tk.Label(
             marco,
@@ -138,39 +174,46 @@ class VentanaTransiciones:
         ).grid(
             row=2,
             column=0,
-            padx=5,
-            pady=5
+            padx=10,
+            pady=8
         )
 
 
 
         self.destino = ttk.Combobox(
             marco,
-            values=list(self.automata.estados),
-            state="readonly"
+            values=estados,
+            state="readonly",
+            width=20
         )
 
 
         self.destino.grid(
             row=2,
-            column=1
+            column=1,
+            padx=10,
+            pady=8
         )
 
 
 
-        botones = ttk.Frame(
+        # ---------------------------------
+        # Botones
+        # ---------------------------------
+
+        marco_botones = ttk.Frame(
             self.ventana
         )
 
 
-        botones.pack(
-            pady=15
+        marco_botones.pack(
+            pady=5
         )
 
 
 
         ttk.Button(
-            botones,
+            marco_botones,
             text="Agregar",
             command=self.agregar
         ).grid(
@@ -182,8 +225,8 @@ class VentanaTransiciones:
 
 
         ttk.Button(
-            botones,
-            text="Eliminar",
+            marco_botones,
+            text="Eliminar seleccionada",
             command=self.eliminar
         ).grid(
             row=0,
@@ -193,8 +236,9 @@ class VentanaTransiciones:
 
 
 
+        # ---------------------------------
         # Tabla
-
+        # ---------------------------------
 
         self.tabla = ttk.Treeview(
             self.ventana,
@@ -203,7 +247,8 @@ class VentanaTransiciones:
                 "simbolo",
                 "destino"
             ),
-            show="headings"
+            show="headings",
+            selectmode="browse"
         )
 
 
@@ -226,12 +271,33 @@ class VentanaTransiciones:
         )
 
 
+
+        self.tabla.column(
+            "origen",
+            anchor="center"
+        )
+
+
+        self.tabla.column(
+            "simbolo",
+            anchor="center"
+        )
+
+
+        self.tabla.column(
+            "destino",
+            anchor="center"
+        )
+
+
+
         self.tabla.pack(
             expand=True,
             fill="both",
             padx=20,
-            pady=10
+            pady=15
         )
+
 
 
         self.actualizar_tabla()
@@ -239,11 +305,10 @@ class VentanaTransiciones:
 
 
     # ---------------------------------
-    # Agregar transición
+    # Agregar
     # ---------------------------------
 
     def agregar(self):
-
 
         origen = self.origen.get()
 
@@ -253,12 +318,33 @@ class VentanaTransiciones:
 
 
 
-        if not origen or not simbolo or not destino:
-
+        if not origen:
 
             messagebox.showwarning(
                 "Advertencia",
-                "Complete todos los campos"
+                "Seleccione el estado origen."
+            )
+
+            return
+
+
+
+        if not simbolo:
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Seleccione un símbolo."
+            )
+
+            return
+
+
+
+        if not destino:
+
+            messagebox.showwarning(
+                "Advertencia",
+                "Seleccione el estado destino."
             )
 
             return
@@ -266,7 +352,6 @@ class VentanaTransiciones:
 
 
         try:
-
 
             self.automata.agregar_transicion(
                 origen,
@@ -279,8 +364,16 @@ class VentanaTransiciones:
 
 
 
-        except Exception as error:
+        except ValueError as error:
 
+            messagebox.showerror(
+                "Transición inválida",
+                str(error)
+            )
+
+
+
+        except Exception as error:
 
             messagebox.showerror(
                 "Error",
@@ -290,22 +383,19 @@ class VentanaTransiciones:
 
 
     # ---------------------------------
-    # Eliminar transición
+    # Eliminar
     # ---------------------------------
 
     def eliminar(self):
 
-
         seleccion = self.tabla.selection()
-
 
 
         if not seleccion:
 
-
             messagebox.showwarning(
                 "Advertencia",
-                "Seleccione una transición"
+                "Seleccione una transición de la tabla."
             )
 
             return
@@ -317,43 +407,46 @@ class VentanaTransiciones:
         )
 
 
-        origen, simbolo, destino = datos["values"]
+
+        origen, simbolo, destino = datos[
+            "values"
+        ]
 
 
 
-        clave = (
-            origen,
-            simbolo
+        respuesta = messagebox.askyesno(
+            "Confirmar",
+            f"¿Eliminar la transición?\n\n"
+            f"{origen} --{simbolo}--> {destino}"
         )
 
 
 
-        if self.automata.tipo == "AFN":
+        if not respuesta:
+
+            return
 
 
-            self.automata.transiciones[clave].remove(
+
+        try:
+
+            self.automata.eliminar_transicion(
+                origen,
+                simbolo,
                 destino
             )
 
 
-
-            if len(
-                self.automata.transiciones[clave]
-            ) == 0:
-
-
-                del self.automata.transiciones[clave]
+            self.actualizar_tabla()
 
 
 
-        else:
+        except ValueError as error:
 
-
-            del self.automata.transiciones[clave]
-
-
-
-        self.actualizar_tabla()
+            messagebox.showerror(
+                "Error",
+                str(error)
+            )
 
 
 
@@ -363,7 +456,6 @@ class VentanaTransiciones:
 
     def actualizar_tabla(self):
 
-
         for fila in self.tabla.get_children():
 
             self.tabla.delete(
@@ -372,18 +464,27 @@ class VentanaTransiciones:
 
 
 
-        for transicion, destino in self.automata.transiciones.items():
+        transiciones_ordenadas = sorted(
+            self.automata.transiciones.items()
+        )
 
 
-            origen, simbolo = transicion
+
+        for (
+            origen,
+            simbolo
+        ), destino in transiciones_ordenadas:
 
 
+            # ---------------------------------
+            # AFN
+            # ---------------------------------
 
             if self.automata.tipo == "AFN":
 
-
-                for estado in destino:
-
+                for estado_destino in sorted(
+                    destino
+                ):
 
                     self.tabla.insert(
                         "",
@@ -391,14 +492,17 @@ class VentanaTransiciones:
                         values=(
                             origen,
                             simbolo,
-                            estado
+                            estado_destino
                         )
                     )
 
 
 
-            else:
+            # ---------------------------------
+            # AFD
+            # ---------------------------------
 
+            else:
 
                 self.tabla.insert(
                     "",
