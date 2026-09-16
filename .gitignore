@@ -11,6 +11,17 @@ venv/
 # Archivos de VS Code
 .vscode/
 
+# Archivos de PyCharm
+.idea/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Archivos temporales
+*.log
+
 # Archivos del sistema
 .DS_Store
 Thumbs.db
