@@ -99,6 +99,14 @@ Realiza la minimización de AFD mediante refinamiento de particiones.
 **test_automatas.py**  
 Contiene las pruebas automáticas del proyecto.
 
+
+## Ejecutable
+
+Para utilizar el simulador sin instalar Python puede descargarse el ejecutable incluido en:
+
+```text
+release/SimuladorAutomatas.exe
+
 ---
 
 ## Ejecución
