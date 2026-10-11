@@ -44,6 +44,7 @@ class ExpresionRegular:
             expresion
         )
 
+        # Eliminar espacios
         expresion = expresion.replace(
             " ",
             ""
@@ -82,7 +83,46 @@ class ExpresionRegular:
 
 
     # ---------------------------------
-    # Obtener símbolos de la expresión
+    # Verificar si es operador
+    # ---------------------------------
+
+    def es_operador(
+        self,
+        caracter
+    ):
+
+        return caracter in self.OPERADORES
+
+
+    # ---------------------------------
+    # Verificar si es símbolo válido
+    # ---------------------------------
+
+    def es_simbolo(
+        self,
+        caracter
+    ):
+
+        # Letras
+        if caracter.isalpha():
+
+            return True
+
+        # Números
+        if caracter.isdigit():
+
+            return True
+
+        # Epsilon
+        if caracter == "ε":
+
+            return True
+
+        return False
+
+
+    # ---------------------------------
+    # Obtener símbolos
     # ---------------------------------
 
     def obtener_simbolos(self):
@@ -91,13 +131,97 @@ class ExpresionRegular:
 
         for caracter in self.expresion:
 
-            if caracter not in self.OPERADORES:
+            if self.es_simbolo(
+                caracter
+            ):
 
                 simbolos.add(
                     caracter
                 )
 
         return simbolos
+
+
+    # ---------------------------------
+    # Obtener operadores utilizados
+    # ---------------------------------
+
+    def obtener_operadores(self):
+
+        operadores = []
+
+        for caracter in self.expresion:
+
+            if self.es_operador(
+                caracter
+            ):
+
+                operadores.append(
+                    caracter
+                )
+
+        return operadores
+
+
+    # ---------------------------------
+    # Validación básica
+    # ---------------------------------
+
+    def validar_basica(self):
+
+        errores = []
+
+
+        # ---------------------------------
+        # Expresión vacía
+        # ---------------------------------
+
+        if self.esta_vacia():
+
+            errores.append(
+                "La expresión regular no puede estar vacía."
+            )
+
+            return errores
+
+
+        # ---------------------------------
+        # Revisar cada carácter
+        # ---------------------------------
+
+        for caracter in self.expresion:
+
+            if self.es_simbolo(
+                caracter
+            ):
+
+                continue
+
+
+            if self.es_operador(
+                caracter
+            ):
+
+                continue
+
+
+            errores.append(
+                f"El carácter '{caracter}' no está permitido."
+            )
+
+
+        return errores
+
+
+    # ---------------------------------
+    # Saber si pasa validación básica
+    # ---------------------------------
+
+    def es_valida_basica(self):
+
+        return len(
+            self.validar_basica()
+        ) == 0
 
 
     # ---------------------------------
@@ -124,3 +248,35 @@ class ExpresionRegular:
             "Símbolos:",
             self.obtener_simbolos()
         )
+
+        print(
+            "Operadores:",
+            self.obtener_operadores()
+        )
+
+
+        errores = self.validar_basica()
+
+
+        if errores:
+
+            print(
+                "Estado: INVÁLIDA"
+            )
+
+            print(
+                "Errores:"
+            )
+
+            for error in errores:
+
+                print(
+                    "-",
+                    error
+                )
+
+        else:
+
+            print(
+                "Estado: VÁLIDA"
+            )
