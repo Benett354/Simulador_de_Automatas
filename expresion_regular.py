@@ -203,6 +203,7 @@ class ExpresionRegular:
 
             return errores
 
+
         # Revisar caracteres
         for caracter in self.expresion:
 
@@ -212,15 +213,18 @@ class ExpresionRegular:
 
                 continue
 
+
             if self.es_operador(
                 caracter
             ):
 
                 continue
 
+
             errores.append(
                 f"El carácter '{caracter}' no está permitido."
             )
+
 
         return errores
 
@@ -235,6 +239,7 @@ class ExpresionRegular:
 
         pila = []
 
+
         for posicion, caracter in enumerate(
             self.expresion
         ):
@@ -245,6 +250,7 @@ class ExpresionRegular:
                 pila.append(
                     posicion
                 )
+
 
             # Paréntesis de cierre
             elif caracter == ")":
@@ -260,6 +266,7 @@ class ExpresionRegular:
 
                     pila.pop()
 
+
         # Aperturas que nunca se cerraron
         for posicion in pila:
 
@@ -267,6 +274,7 @@ class ExpresionRegular:
                 "Paréntesis de apertura '(' "
                 f"sin cierre en la posición {posicion + 1}."
             )
+
 
         return errores
 
@@ -279,6 +287,7 @@ class ExpresionRegular:
 
         errores = []
 
+
         if self.esta_vacia():
 
             return errores
@@ -290,7 +299,7 @@ class ExpresionRegular:
 
         primero = self.expresion[0]
 
-        # La unión no puede iniciar
+
         if primero == "|":
 
             errores.append(
@@ -298,8 +307,7 @@ class ExpresionRegular:
                 "al inicio de la expresión."
             )
 
-        # Los operadores *, + y ?
-        # necesitan una expresión anterior
+
         if self.es_operador_unario(
             primero
         ):
@@ -316,7 +324,7 @@ class ExpresionRegular:
 
         ultimo = self.expresion[-1]
 
-        # La unión necesita operando a la derecha
+
         if ultimo == "|":
 
             errores.append(
@@ -326,21 +334,20 @@ class ExpresionRegular:
 
 
         # ---------------------------------
-        # Revisar posición interna
+        # Revisar posiciones internas
         # ---------------------------------
 
         for posicion, caracter in enumerate(
             self.expresion
         ):
 
+
             # ---------------------------------
-            # Operador de unión |
+            # Operador |
             # ---------------------------------
 
             if caracter == "|":
 
-                # Si está al inicio o final,
-                # ya fue reportado anteriormente
                 if (
                     posicion == 0
                     or posicion == len(self.expresion) - 1
@@ -353,12 +360,13 @@ class ExpresionRegular:
                     posicion - 1
                 ]
 
+
                 siguiente = self.expresion[
                     posicion + 1
                 ]
 
 
-                # No puede haber:
+                # Ejemplo:
                 # (|a)
                 if anterior == "(":
 
@@ -368,7 +376,7 @@ class ExpresionRegular:
                     )
 
 
-                # No puede haber:
+                # Ejemplo:
                 # (a|)
                 if siguiente == ")":
 
@@ -380,15 +388,12 @@ class ExpresionRegular:
 
             # ---------------------------------
             # Operadores unarios
-            # *, + y ?
             # ---------------------------------
 
             elif self.es_operador_unario(
                 caracter
             ):
 
-                # Si aparece al inicio,
-                # ya fue reportado
                 if posicion == 0:
 
                     continue
@@ -399,8 +404,8 @@ class ExpresionRegular:
                 ]
 
 
-                # No pueden aparecer directamente
-                # después de un paréntesis abierto
+                # Ejemplo:
+                # (*a)
                 if anterior == "(":
 
                     errores.append(
@@ -409,13 +414,109 @@ class ExpresionRegular:
                     )
 
 
-                # Tampoco directamente después de |
-                if anterior == "|":
+        return errores
 
-                    errores.append(
-                        f"El operador '{caracter}' no puede aparecer "
-                        f"después de '|' en la posición {posicion + 1}."
-                    )
+
+    # ---------------------------------
+    # Validar combinaciones
+    # incorrectas de operadores
+    # ---------------------------------
+
+    def validar_combinaciones_operadores(self):
+
+        errores = []
+
+
+        if self.esta_vacia():
+
+            return errores
+
+
+        # Recorremos hasta el penúltimo
+        # carácter porque compararemos
+        # cada posición con la siguiente.
+        for posicion in range(
+            len(self.expresion) - 1
+        ):
+
+            actual = self.expresion[
+                posicion
+            ]
+
+            siguiente = self.expresion[
+                posicion + 1
+            ]
+
+
+            # ---------------------------------
+            # Dos operadores de unión seguidos
+            # ---------------------------------
+
+            # Ejemplo:
+            # a||b
+
+            if (
+                actual == "|"
+                and siguiente == "|"
+            ):
+
+                errores.append(
+                    "No pueden aparecer dos operadores '|' "
+                    f"consecutivos en las posiciones "
+                    f"{posicion + 1} y {posicion + 2}."
+                )
+
+
+            # ---------------------------------
+            # Unión seguida de operador unario
+            # ---------------------------------
+
+            # Ejemplos:
+            # a|*b
+            # a|+b
+            # a|?b
+
+            elif (
+                actual == "|"
+                and self.es_operador_unario(
+                    siguiente
+                )
+            ):
+
+                errores.append(
+                    f"El operador '{siguiente}' no puede aparecer "
+                    f"inmediatamente después de '|' "
+                    f"en la posición {posicion + 2}."
+                )
+
+
+            # ---------------------------------
+            # Dos operadores unarios seguidos
+            # ---------------------------------
+
+            # Ejemplos:
+            # a**
+            # a++
+            # a??
+            # a*+
+            # a+?
+            # a?*
+
+            elif (
+                self.es_operador_unario(
+                    actual
+                )
+                and self.es_operador_unario(
+                    siguiente
+                )
+            ):
+
+                errores.append(
+                    f"Los operadores '{actual}' y '{siguiente}' "
+                    "no pueden aparecer consecutivamente "
+                    f"en las posiciones "
+                    f"{posicion + 1} y {posicion + 2}."
+                )
 
 
         return errores
@@ -445,6 +546,18 @@ class ExpresionRegular:
 
 
     # ---------------------------------
+    # Saber si las combinaciones
+    # de operadores son válidas
+    # ---------------------------------
+
+    def combinaciones_operadores_validas(self):
+
+        return len(
+            self.validar_combinaciones_operadores()
+        ) == 0
+
+
+    # ---------------------------------
     # Saber si pasa validación básica
     # ---------------------------------
 
@@ -465,20 +578,24 @@ class ExpresionRegular:
             "\n===== EXPRESIÓN REGULAR ====="
         )
 
+
         print(
             "Expresión:",
             self.expresion
         )
+
 
         print(
             "Longitud:",
             self.longitud()
         )
 
+
         print(
             "Símbolos:",
             self.obtener_simbolos()
         )
+
 
         print(
             "Operadores:",
@@ -492,16 +609,24 @@ class ExpresionRegular:
 
         errores = []
 
+
         errores.extend(
             self.validar_basica()
         )
+
 
         errores.extend(
             self.validar_parentesis()
         )
 
+
         errores.extend(
             self.validar_posicion_operadores()
+        )
+
+
+        errores.extend(
+            self.validar_combinaciones_operadores()
         )
 
 
@@ -519,12 +644,14 @@ class ExpresionRegular:
                 "Errores:"
             )
 
+
             for error in errores:
 
                 print(
                     "-",
                     error
                 )
+
 
         else:
 
