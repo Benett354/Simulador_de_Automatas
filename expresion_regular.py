@@ -143,7 +143,7 @@ class ExpresionRegular:
 
 
     # ---------------------------------
-    # Obtener operadores utilizados
+    # Obtener operadores
     # ---------------------------------
 
     def obtener_operadores(self):
@@ -171,11 +171,7 @@ class ExpresionRegular:
 
         errores = []
 
-
-        # ---------------------------------
         # Expresión vacía
-        # ---------------------------------
-
         if self.esta_vacia():
 
             errores.append(
@@ -184,11 +180,7 @@ class ExpresionRegular:
 
             return errores
 
-
-        # ---------------------------------
-        # Revisar cada carácter
-        # ---------------------------------
-
+        # Revisar caracteres
         for caracter in self.expresion:
 
             if self.es_simbolo(
@@ -197,20 +189,86 @@ class ExpresionRegular:
 
                 continue
 
-
             if self.es_operador(
                 caracter
             ):
 
                 continue
 
-
             errores.append(
                 f"El carácter '{caracter}' no está permitido."
             )
 
+        return errores
+
+
+    # ---------------------------------
+    # Validar paréntesis
+    # ---------------------------------
+
+    def validar_parentesis(self):
+
+        errores = []
+
+        # Aquí guardaremos las posiciones
+        # de los paréntesis de apertura
+        pila = []
+
+        for posicion, caracter in enumerate(
+            self.expresion
+        ):
+
+            # ---------------------------------
+            # Paréntesis de apertura
+            # ---------------------------------
+
+            if caracter == "(":
+
+                pila.append(
+                    posicion
+                )
+
+            # ---------------------------------
+            # Paréntesis de cierre
+            # ---------------------------------
+
+            elif caracter == ")":
+
+                # No existe apertura correspondiente
+                if not pila:
+
+                    errores.append(
+                        "Paréntesis de cierre ')' "
+                        f"sin apertura en la posición {posicion + 1}."
+                    )
+
+                else:
+
+                    pila.pop()
+
+        # ---------------------------------
+        # Aperturas que nunca se cerraron
+        # ---------------------------------
+
+        for posicion in pila:
+
+            errores.append(
+                "Paréntesis de apertura '(' "
+                f"sin cierre en la posición {posicion + 1}."
+            )
 
         return errores
+
+
+    # ---------------------------------
+    # Saber si los paréntesis son válidos
+    # ---------------------------------
+
+    def parentesis_validos(self):
+
+        return len(
+            self.validar_parentesis()
+        ) == 0
 
 
     # ---------------------------------
@@ -254,9 +312,23 @@ class ExpresionRegular:
             self.obtener_operadores()
         )
 
+        # ---------------------------------
+        # Reunir errores actuales
+        # ---------------------------------
 
-        errores = self.validar_basica()
+        errores = []
 
+        errores.extend(
+            self.validar_basica()
+        )
+
+        errores.extend(
+            self.validar_parentesis()
+        )
+
+        # ---------------------------------
+        # Mostrar resultado
+        # ---------------------------------
 
         if errores:
 
