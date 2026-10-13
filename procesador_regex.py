@@ -34,6 +34,19 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
+    # Precedencia de operadores
+    # ---------------------------------
+
+    PRECEDENCIA = {
+        "|": 1,
+        "·": 2,
+        "*": 3,
+        "+": 3,
+        "?": 3
+    }
+
+
+    # ---------------------------------
     # Constructor
     # ---------------------------------
 
@@ -66,8 +79,6 @@ class ProcesadorRegex:
 
         self.expresion_original = expresion
 
-        # El procesamiento interno
-        # se realiza sin espacios
         self.expresion = expresion.replace(
             " ",
             ""
@@ -114,6 +125,7 @@ class ProcesadorRegex:
 
     # ---------------------------------
     # Verificar si es operador
+    # escrito por el usuario
     # ---------------------------------
 
     def es_operador(
@@ -137,6 +149,67 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
+    # Verificar operador interno
+    # de procesamiento
+    # ---------------------------------
+
+    def es_operador_procesamiento(
+        self,
+        caracter
+    ):
+
+        return caracter in self.PRECEDENCIA
+
+
+    # ---------------------------------
+    # Obtener precedencia
+    # ---------------------------------
+
+    def obtener_precedencia(
+        self,
+        operador
+    ):
+
+        if operador in self.PRECEDENCIA:
+
+            return self.PRECEDENCIA[
+                operador
+            ]
+
+
+        return 0
+
+
+    # ---------------------------------
+    # Comparar precedencia
+    # ---------------------------------
+
+    def tiene_mayor_o_igual_precedencia(
+        self,
+        operador_1,
+        operador_2
+    ):
+
+        precedencia_1 = (
+            self.obtener_precedencia(
+                operador_1
+            )
+        )
+
+        precedencia_2 = (
+            self.obtener_precedencia(
+                operador_2
+            )
+        )
+
+
+        return (
+            precedencia_1
+            >= precedencia_2
+        )
+
+
+    # ---------------------------------
     # Verificar si es símbolo
     # ---------------------------------
 
@@ -145,19 +218,16 @@ class ProcesadorRegex:
         caracter
     ):
 
-        # Epsilon
         if caracter == "ε":
 
             return True
 
 
-        # Letras
         if caracter.isalpha():
 
             return True
 
 
-        # Números
         if caracter.isdigit():
 
             return True
@@ -167,7 +237,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Convertir expresión a elementos
+    # Obtener elementos
     # ---------------------------------
 
     def obtener_elementos(self):
@@ -243,8 +313,6 @@ class ProcesadorRegex:
         caracter
     ):
 
-        # Un símbolo puede terminar
-        # una parte de la expresión
         if self.es_simbolo(
             caracter
         ):
@@ -252,15 +320,11 @@ class ProcesadorRegex:
             return True
 
 
-        # Un paréntesis cerrado puede
-        # terminar un grupo
         if caracter == ")":
 
             return True
 
 
-        # *, + y ? actúan sobre
-        # la expresión anterior
         if self.es_operador_unario(
             caracter
         ):
@@ -281,8 +345,6 @@ class ProcesadorRegex:
         caracter
     ):
 
-        # Un símbolo puede iniciar
-        # una nueva expresión
         if self.es_simbolo(
             caracter
         ):
@@ -290,8 +352,6 @@ class ProcesadorRegex:
             return True
 
 
-        # Un paréntesis abierto inicia
-        # un nuevo grupo
         if caracter == "(":
 
             return True
@@ -301,8 +361,8 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Saber si entre dos elementos
-    # existe concatenación implícita
+    # Saber si existe concatenación
+    # implícita
     # ---------------------------------
 
     def necesita_concatenacion(
@@ -332,7 +392,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Detectar concatenaciones implícitas
+    # Detectar concatenaciones
     # ---------------------------------
 
     def detectar_concatenaciones(self):
@@ -377,7 +437,6 @@ class ProcesadorRegex:
 
     # ---------------------------------
     # Saber si existen concatenaciones
-    # implícitas
     # ---------------------------------
 
     def tiene_concatenaciones(self):
@@ -393,8 +452,6 @@ class ProcesadorRegex:
 
     def insertar_concatenaciones(self):
 
-        # Si está vacía no hay nada
-        # que procesar
         if self.esta_vacia():
 
             return ""
@@ -402,10 +459,6 @@ class ProcesadorRegex:
 
         resultado = ""
 
-
-        # ---------------------------------
-        # Recorrer la expresión
-        # ---------------------------------
 
         for posicion in range(
             len(self.expresion)
@@ -416,12 +469,9 @@ class ProcesadorRegex:
             ]
 
 
-            # Agregar carácter actual
             resultado += actual
 
 
-            # Si estamos en el último
-            # carácter terminamos
             if posicion == len(self.expresion) - 1:
 
                 continue
@@ -431,10 +481,6 @@ class ProcesadorRegex:
                 posicion + 1
             ]
 
-
-            # ---------------------------------
-            # Verificar concatenación
-            # ---------------------------------
 
             if self.necesita_concatenacion(
                 actual,
@@ -459,7 +505,48 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Mostrar concatenaciones detectadas
+    # Mostrar tabla de precedencia
+    # ---------------------------------
+
+    def mostrar_precedencias(self):
+
+        print(
+            "\nPrecedencia de operadores:"
+        )
+
+
+        print(
+            "*  ->",
+            self.obtener_precedencia("*")
+        )
+
+
+        print(
+            "+  ->",
+            self.obtener_precedencia("+")
+        )
+
+
+        print(
+            "?  ->",
+            self.obtener_precedencia("?")
+        )
+
+
+        print(
+            "·  ->",
+            self.obtener_precedencia("·")
+        )
+
+
+        print(
+            "|  ->",
+            self.obtener_precedencia("|")
+        )
+
+
+    # ---------------------------------
+    # Mostrar concatenaciones
     # ---------------------------------
 
     def mostrar_concatenaciones(self):
@@ -557,3 +644,6 @@ class ProcesadorRegex:
             "Expresión con concatenación:",
             self.obtener_expresion_concatenada()
         )
+
+
+        self.mostrar_precedencias()
