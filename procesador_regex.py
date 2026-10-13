@@ -2,7 +2,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Operadores de expresiones regulares
+    # Operadores escritos por el usuario
     # ---------------------------------
 
     OPERADORES = {
@@ -24,6 +24,13 @@ class ProcesadorRegex:
         "+",
         "?"
     }
+
+
+    # ---------------------------------
+    # Operador interno de concatenación
+    # ---------------------------------
+
+    OPERADOR_CONCATENACION = "·"
 
 
     # ---------------------------------
@@ -60,7 +67,7 @@ class ProcesadorRegex:
         self.expresion_original = expresion
 
         # El procesamiento interno
-        # se realizará sin espacios
+        # se realiza sin espacios
         self.expresion = expresion.replace(
             " ",
             ""
@@ -245,14 +252,14 @@ class ProcesadorRegex:
             return True
 
 
-        # Un paréntesis cerrado también
-        # puede terminar un grupo
+        # Un paréntesis cerrado puede
+        # terminar un grupo
         if caracter == ")":
 
             return True
 
 
-        # *, + y ? se aplican sobre
+        # *, + y ? actúan sobre
         # la expresión anterior
         if self.es_operador_unario(
             caracter
@@ -275,7 +282,7 @@ class ProcesadorRegex:
     ):
 
         # Un símbolo puede iniciar
-        # una nueva parte
+        # una nueva expresión
         if self.es_simbolo(
             caracter
         ):
@@ -338,8 +345,6 @@ class ProcesadorRegex:
             return concatenaciones
 
 
-        # Recorremos cada pareja
-        # de caracteres consecutivos
         for posicion in range(
             len(self.expresion) - 1
         ):
@@ -383,7 +388,78 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Mostrar concatenaciones
+    # Insertar operador de concatenación
+    # ---------------------------------
+
+    def insertar_concatenaciones(self):
+
+        # Si está vacía no hay nada
+        # que procesar
+        if self.esta_vacia():
+
+            return ""
+
+
+        resultado = ""
+
+
+        # ---------------------------------
+        # Recorrer la expresión
+        # ---------------------------------
+
+        for posicion in range(
+            len(self.expresion)
+        ):
+
+            actual = self.expresion[
+                posicion
+            ]
+
+
+            # Agregar carácter actual
+            resultado += actual
+
+
+            # Si estamos en el último
+            # carácter terminamos
+            if posicion == len(self.expresion) - 1:
+
+                continue
+
+
+            siguiente = self.expresion[
+                posicion + 1
+            ]
+
+
+            # ---------------------------------
+            # Verificar concatenación
+            # ---------------------------------
+
+            if self.necesita_concatenacion(
+                actual,
+                siguiente
+            ):
+
+                resultado += (
+                    self.OPERADOR_CONCATENACION
+                )
+
+
+        return resultado
+
+
+    # ---------------------------------
+    # Obtener expresión preparada
+    # ---------------------------------
+
+    def obtener_expresion_concatenada(self):
+
+        return self.insertar_concatenaciones()
+
+
+    # ---------------------------------
+    # Mostrar concatenaciones detectadas
     # ---------------------------------
 
     def mostrar_concatenaciones(self):
@@ -475,3 +551,9 @@ class ProcesadorRegex:
 
 
         self.mostrar_concatenaciones()
+
+
+        print(
+            "Expresión con concatenación:",
+            self.obtener_expresion_concatenada()
+        )
