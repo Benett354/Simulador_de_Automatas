@@ -16,6 +16,17 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
+    # Operadores unarios
+    # ---------------------------------
+
+    OPERADORES_UNARIOS = {
+        "*",
+        "+",
+        "?"
+    }
+
+
+    # ---------------------------------
     # Constructor
     # ---------------------------------
 
@@ -107,6 +118,18 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
+    # Verificar operador unario
+    # ---------------------------------
+
+    def es_operador_unario(
+        self,
+        caracter
+    ):
+
+        return caracter in self.OPERADORES_UNARIOS
+
+
+    # ---------------------------------
     # Verificar si es símbolo
     # ---------------------------------
 
@@ -115,16 +138,19 @@ class ProcesadorRegex:
         caracter
     ):
 
+        # Epsilon
         if caracter == "ε":
 
             return True
 
 
+        # Letras
         if caracter.isalpha():
 
             return True
 
 
+        # Números
         if caracter.isdigit():
 
             return True
@@ -201,6 +227,204 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
+    # Verificar si un elemento puede
+    # terminar una expresión
+    # ---------------------------------
+
+    def puede_terminar_expresion(
+        self,
+        caracter
+    ):
+
+        # Un símbolo puede terminar
+        # una parte de la expresión
+        if self.es_simbolo(
+            caracter
+        ):
+
+            return True
+
+
+        # Un paréntesis cerrado también
+        # puede terminar un grupo
+        if caracter == ")":
+
+            return True
+
+
+        # *, + y ? se aplican sobre
+        # la expresión anterior
+        if self.es_operador_unario(
+            caracter
+        ):
+
+            return True
+
+
+        return False
+
+
+    # ---------------------------------
+    # Verificar si un elemento puede
+    # iniciar una expresión
+    # ---------------------------------
+
+    def puede_iniciar_expresion(
+        self,
+        caracter
+    ):
+
+        # Un símbolo puede iniciar
+        # una nueva parte
+        if self.es_simbolo(
+            caracter
+        ):
+
+            return True
+
+
+        # Un paréntesis abierto inicia
+        # un nuevo grupo
+        if caracter == "(":
+
+            return True
+
+
+        return False
+
+
+    # ---------------------------------
+    # Saber si entre dos elementos
+    # existe concatenación implícita
+    # ---------------------------------
+
+    def necesita_concatenacion(
+        self,
+        anterior,
+        siguiente
+    ):
+
+        izquierda_valida = (
+            self.puede_terminar_expresion(
+                anterior
+            )
+        )
+
+
+        derecha_valida = (
+            self.puede_iniciar_expresion(
+                siguiente
+            )
+        )
+
+
+        return (
+            izquierda_valida
+            and derecha_valida
+        )
+
+
+    # ---------------------------------
+    # Detectar concatenaciones implícitas
+    # ---------------------------------
+
+    def detectar_concatenaciones(self):
+
+        concatenaciones = []
+
+
+        if len(self.expresion) < 2:
+
+            return concatenaciones
+
+
+        # Recorremos cada pareja
+        # de caracteres consecutivos
+        for posicion in range(
+            len(self.expresion) - 1
+        ):
+
+            anterior = self.expresion[
+                posicion
+            ]
+
+            siguiente = self.expresion[
+                posicion + 1
+            ]
+
+
+            if self.necesita_concatenacion(
+                anterior,
+                siguiente
+            ):
+
+                concatenaciones.append(
+                    (
+                        posicion + 1,
+                        anterior,
+                        siguiente
+                    )
+                )
+
+
+        return concatenaciones
+
+
+    # ---------------------------------
+    # Saber si existen concatenaciones
+    # implícitas
+    # ---------------------------------
+
+    def tiene_concatenaciones(self):
+
+        return len(
+            self.detectar_concatenaciones()
+        ) > 0
+
+
+    # ---------------------------------
+    # Mostrar concatenaciones
+    # ---------------------------------
+
+    def mostrar_concatenaciones(self):
+
+        concatenaciones = (
+            self.detectar_concatenaciones()
+        )
+
+
+        if not concatenaciones:
+
+            print(
+                "No se detectaron "
+                "concatenaciones implícitas."
+            )
+
+            return
+
+
+        print(
+            "Concatenaciones implícitas:"
+        )
+
+
+        for (
+            posicion,
+            anterior,
+            siguiente
+        ) in concatenaciones:
+
+            print(
+                "- Entre",
+                f"'{anterior}'",
+                "y",
+                f"'{siguiente}'",
+                "después de la posición",
+                posicion
+            )
+
+
+    # ---------------------------------
     # Mostrar información
     # ---------------------------------
 
@@ -245,3 +469,9 @@ class ProcesadorRegex:
             "Operadores:",
             self.obtener_operadores()
         )
+
+
+        print()
+
+
+        self.mostrar_concatenaciones()
