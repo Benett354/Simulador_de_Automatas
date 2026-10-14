@@ -47,6 +47,20 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
+    # Nombres utilizados para Thompson
+    # ---------------------------------
+
+    TIPO_SIMBOLO = "SIMBOLO"
+    TIPO_EPSILON = "EPSILON"
+    TIPO_UNION = "UNION"
+    TIPO_CONCATENACION = "CONCATENACION"
+    TIPO_KLEENE = "KLEENE"
+    TIPO_POSITIVA = "POSITIVA"
+    TIPO_OPCIONAL = "OPCIONAL"
+    TIPO_DESCONOCIDO = "DESCONOCIDO"
+
+
+    # ---------------------------------
     # Constructor
     # ---------------------------------
 
@@ -218,19 +232,16 @@ class ProcesadorRegex:
         caracter
     ):
 
-        # Epsilon
         if caracter == "ε":
 
             return True
 
 
-        # Letras
         if caracter.isalpha():
 
             return True
 
 
-        # Números
         if caracter.isdigit():
 
             return True
@@ -377,7 +388,6 @@ class ProcesadorRegex:
             )
         )
 
-
         derecha_valida = (
             self.puede_iniciar_expresion(
                 siguiente
@@ -510,8 +520,6 @@ class ProcesadorRegex:
 
     def convertir_a_postfija(self):
 
-        # Primero obtenemos la expresión
-        # con concatenaciones explícitas
         expresion = (
             self.obtener_expresion_concatenada()
         )
@@ -522,24 +530,16 @@ class ProcesadorRegex:
             return ""
 
 
-        # Resultado final
         salida = []
 
-
-        # Pila de operadores
         pila = []
 
-
-        # ---------------------------------
-        # Recorrer la expresión
-        # ---------------------------------
 
         for caracter in expresion:
 
 
             # ---------------------------------
-            # 1. Si es símbolo
-            # va directamente a la salida
+            # Símbolos
             # ---------------------------------
 
             if self.es_simbolo(
@@ -554,7 +554,7 @@ class ProcesadorRegex:
 
 
             # ---------------------------------
-            # 2. Paréntesis de apertura
+            # Paréntesis de apertura
             # ---------------------------------
 
             if caracter == "(":
@@ -567,13 +567,11 @@ class ProcesadorRegex:
 
 
             # ---------------------------------
-            # 3. Paréntesis de cierre
+            # Paréntesis de cierre
             # ---------------------------------
 
             if caracter == ")":
 
-                # Sacar operadores hasta
-                # encontrar (
                 while (
                     pila
                     and pila[-1] != "("
@@ -584,7 +582,6 @@ class ProcesadorRegex:
                     )
 
 
-                # Eliminar (
                 if (
                     pila
                     and pila[-1] == "("
@@ -597,17 +594,13 @@ class ProcesadorRegex:
 
 
             # ---------------------------------
-            # 4. Operadores
+            # Operadores
             # ---------------------------------
 
             if self.es_operador_procesamiento(
                 caracter
             ):
 
-
-                # Mientras exista un operador
-                # de mayor o igual precedencia
-                # en la pila, pasa a salida
                 while (
                     pila
                     and pila[-1] != "("
@@ -622,14 +615,13 @@ class ProcesadorRegex:
                     )
 
 
-                # Guardar operador actual
                 pila.append(
                     caracter
                 )
 
 
         # ---------------------------------
-        # Vaciar operadores restantes
+        # Vaciar pila
         # ---------------------------------
 
         while pila:
@@ -637,8 +629,6 @@ class ProcesadorRegex:
             operador = pila.pop()
 
 
-            # No agregamos paréntesis
-            # al resultado postfijo
             if operador not in {
                 "(",
                 ")"
@@ -649,7 +639,6 @@ class ProcesadorRegex:
                 )
 
 
-        # Convertir lista en texto
         return "".join(
             salida
         )
@@ -664,8 +653,202 @@ class ProcesadorRegex:
         return self.convertir_a_postfija()
 
 
+    # =================================
+    # PROCESAMIENTO DE TOKENS
+    # =================================
+
+    def clasificar_token(
+        self,
+        token
+    ):
+
+        # ---------------------------------
+        # Epsilon
+        # ---------------------------------
+
+        if token == "ε":
+
+            return self.TIPO_EPSILON
+
+
+        # ---------------------------------
+        # Símbolo del alfabeto
+        # ---------------------------------
+
+        if self.es_simbolo(
+            token
+        ):
+
+            return self.TIPO_SIMBOLO
+
+
+        # ---------------------------------
+        # Unión
+        # ---------------------------------
+
+        if token == "|":
+
+            return self.TIPO_UNION
+
+
+        # ---------------------------------
+        # Concatenación
+        # ---------------------------------
+
+        if token == self.OPERADOR_CONCATENACION:
+
+            return self.TIPO_CONCATENACION
+
+
+        # ---------------------------------
+        # Cerradura de Kleene
+        # ---------------------------------
+
+        if token == "*":
+
+            return self.TIPO_KLEENE
+
+
+        # ---------------------------------
+        # Cerradura positiva
+        # ---------------------------------
+
+        if token == "+":
+
+            return self.TIPO_POSITIVA
+
+
+        # ---------------------------------
+        # Operador opcional
+        # ---------------------------------
+
+        if token == "?":
+
+            return self.TIPO_OPCIONAL
+
+
+        return self.TIPO_DESCONOCIDO
+
+
     # ---------------------------------
-    # Mostrar tabla de precedencias
+    # Obtener tokens postfijos
+    # ---------------------------------
+
+    def obtener_tokens_postfijos(self):
+
+        postfija = self.obtener_postfija()
+
+        tokens = []
+
+
+        for caracter in postfija:
+
+            tokens.append(
+                caracter
+            )
+
+
+        return tokens
+
+
+    # ---------------------------------
+    # Preparar tokens para Thompson
+    # ---------------------------------
+
+    def obtener_tokens_para_thompson(self):
+
+        tokens_procesados = []
+
+
+        for token in self.obtener_tokens_postfijos():
+
+            tipo = self.clasificar_token(
+                token
+            )
+
+
+            tokens_procesados.append(
+                (
+                    tipo,
+                    token
+                )
+            )
+
+
+        return tokens_procesados
+
+
+    # ---------------------------------
+    # Contar operadores especiales
+    # ---------------------------------
+
+    def contar_operadores_especiales(self):
+
+        conteo = {
+            self.TIPO_KLEENE: 0,
+            self.TIPO_POSITIVA: 0,
+            self.TIPO_OPCIONAL: 0,
+            self.TIPO_UNION: 0,
+            self.TIPO_CONCATENACION: 0
+        }
+
+
+        for (
+            tipo,
+            token
+        ) in self.obtener_tokens_para_thompson():
+
+            if tipo in conteo:
+
+                conteo[tipo] += 1
+
+
+        return conteo
+
+
+    # ---------------------------------
+    # Mostrar tokens para Thompson
+    # ---------------------------------
+
+    def mostrar_tokens_thompson(self):
+
+        tokens = (
+            self.obtener_tokens_para_thompson()
+        )
+
+
+        print(
+            "\nTokens para Thompson:"
+        )
+
+
+        if not tokens:
+
+            print(
+                "No existen tokens."
+            )
+
+            return
+
+
+        for posicion, (
+            tipo,
+            token
+        ) in enumerate(
+            tokens,
+            start=1
+        ):
+
+            print(
+                f"{posicion}.",
+                token,
+                "->",
+                tipo
+            )
+
+
+    # ---------------------------------
+    # Mostrar precedencias
     # ---------------------------------
 
     def mostrar_precedencias(self):
@@ -813,3 +996,6 @@ class ProcesadorRegex:
 
 
         self.mostrar_precedencias()
+
+
+        self.mostrar_tokens_thompson()
