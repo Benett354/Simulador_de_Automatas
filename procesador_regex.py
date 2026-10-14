@@ -1,3 +1,6 @@
+from expresion_regular import ExpresionRegular
+
+
 class ProcesadorRegex:
 
 
@@ -47,7 +50,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Nombres utilizados para Thompson
+    # Tipos para Thompson
     # ---------------------------------
 
     TIPO_SIMBOLO = "SIMBOLO"
@@ -93,8 +96,6 @@ class ProcesadorRegex:
 
         self.expresion_original = expresion
 
-        # Trabajaremos internamente
-        # sin espacios
         self.expresion = expresion.replace(
             " ",
             ""
@@ -126,6 +127,75 @@ class ProcesadorRegex:
     def esta_vacia(self):
 
         return self.expresion == ""
+
+
+    # =================================
+    # INTEGRACIÓN CON WILMER
+    # =================================
+
+    def crear_validador(self):
+
+        return ExpresionRegular(
+            self.expresion
+        )
+
+
+    # ---------------------------------
+    # Obtener errores de validación
+    # ---------------------------------
+
+    def obtener_errores_validacion(self):
+
+        validador = self.crear_validador()
+
+        return validador.validar()
+
+
+    # ---------------------------------
+    # Saber si la expresión es válida
+    # ---------------------------------
+
+    def es_expresion_valida(self):
+
+        return len(
+            self.obtener_errores_validacion()
+        ) == 0
+
+
+    # ---------------------------------
+    # Validar antes de procesar
+    # ---------------------------------
+
+    def validar_antes_de_procesar(self):
+
+        errores = (
+            self.obtener_errores_validacion()
+        )
+
+
+        if errores:
+
+            mensaje = (
+                "La expresión regular no puede "
+                "ser procesada:\n"
+            )
+
+
+            for error in errores:
+
+                mensaje += (
+                    "- "
+                    + error
+                    + "\n"
+                )
+
+
+            raise ValueError(
+                mensaje.strip()
+            )
+
+
+        return True
 
 
     # ---------------------------------
@@ -462,12 +532,12 @@ class ProcesadorRegex:
 
     def insertar_concatenaciones(self):
 
+        resultado = ""
+
+
         if self.esta_vacia():
 
-            return ""
-
-
-        resultado = ""
+            return resultado
 
 
         for posicion in range(
@@ -511,6 +581,8 @@ class ProcesadorRegex:
 
     def obtener_expresion_concatenada(self):
 
+        self.validar_antes_de_procesar()
+
         return self.insertar_concatenaciones()
 
 
@@ -520,14 +592,16 @@ class ProcesadorRegex:
 
     def convertir_a_postfija(self):
 
+        # Primero se valida con
+        # la clase creada por Wilmer
+        self.validar_antes_de_procesar()
+
+
+        # Después se agregan
+        # concatenaciones internas
         expresion = (
-            self.obtener_expresion_concatenada()
+            self.insertar_concatenaciones()
         )
-
-
-        if expresion == "":
-
-            return ""
 
 
         salida = []
@@ -535,11 +609,15 @@ class ProcesadorRegex:
         pila = []
 
 
+        # ---------------------------------
+        # Recorrer expresión
+        # ---------------------------------
+
         for caracter in expresion:
 
 
             # ---------------------------------
-            # Símbolos
+            # Símbolo
             # ---------------------------------
 
             if self.es_simbolo(
@@ -654,7 +732,7 @@ class ProcesadorRegex:
 
 
     # =================================
-    # PROCESAMIENTO DE TOKENS
+    # TOKENS PARA THOMPSON
     # =================================
 
     def clasificar_token(
@@ -662,18 +740,10 @@ class ProcesadorRegex:
         token
     ):
 
-        # ---------------------------------
-        # Epsilon
-        # ---------------------------------
-
         if token == "ε":
 
             return self.TIPO_EPSILON
 
-
-        # ---------------------------------
-        # Símbolo del alfabeto
-        # ---------------------------------
 
         if self.es_simbolo(
             token
@@ -682,45 +752,25 @@ class ProcesadorRegex:
             return self.TIPO_SIMBOLO
 
 
-        # ---------------------------------
-        # Unión
-        # ---------------------------------
-
         if token == "|":
 
             return self.TIPO_UNION
 
-
-        # ---------------------------------
-        # Concatenación
-        # ---------------------------------
 
         if token == self.OPERADOR_CONCATENACION:
 
             return self.TIPO_CONCATENACION
 
 
-        # ---------------------------------
-        # Cerradura de Kleene
-        # ---------------------------------
-
         if token == "*":
 
             return self.TIPO_KLEENE
 
 
-        # ---------------------------------
-        # Cerradura positiva
-        # ---------------------------------
-
         if token == "+":
 
             return self.TIPO_POSITIVA
 
-
-        # ---------------------------------
-        # Operador opcional
-        # ---------------------------------
 
         if token == "?":
 
@@ -807,7 +857,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Mostrar tokens para Thompson
+    # Mostrar tokens
     # ---------------------------------
 
     def mostrar_tokens_thompson(self):
@@ -820,15 +870,6 @@ class ProcesadorRegex:
         print(
             "\nTokens para Thompson:"
         )
-
-
-        if not tokens:
-
-            print(
-                "No existen tokens."
-            )
-
-            return
 
 
         for posicion, (
@@ -863,24 +904,20 @@ class ProcesadorRegex:
             self.obtener_precedencia("*")
         )
 
-
         print(
             "+  ->",
             self.obtener_precedencia("+")
         )
-
 
         print(
             "?  ->",
             self.obtener_precedencia("?")
         )
 
-
         print(
             "·  ->",
             self.obtener_precedencia("·")
         )
-
 
         print(
             "|  ->",
@@ -950,6 +987,42 @@ class ProcesadorRegex:
         print(
             "Expresión limpia:",
             self.expresion
+        )
+
+
+        # ---------------------------------
+        # Primero validar
+        # ---------------------------------
+
+        errores = (
+            self.obtener_errores_validacion()
+        )
+
+
+        if errores:
+
+            print(
+                "Estado: INVÁLIDA"
+            )
+
+            print(
+                "No se puede procesar."
+            )
+
+
+            for error in errores:
+
+                print(
+                    "-",
+                    error
+                )
+
+
+            return
+
+
+        print(
+            "Estado: VÁLIDA"
         )
 
 
