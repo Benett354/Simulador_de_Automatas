@@ -79,6 +79,8 @@ class ProcesadorRegex:
 
         self.expresion_original = expresion
 
+        # Trabajaremos internamente
+        # sin espacios
         self.expresion = expresion.replace(
             " ",
             ""
@@ -124,8 +126,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Verificar si es operador
-    # escrito por el usuario
+    # Verificar operador
     # ---------------------------------
 
     def es_operador(
@@ -149,8 +150,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Verificar operador interno
-    # de procesamiento
+    # Verificar operador de procesamiento
     # ---------------------------------
 
     def es_operador_procesamiento(
@@ -210,7 +210,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Verificar si es símbolo
+    # Verificar símbolo
     # ---------------------------------
 
     def es_simbolo(
@@ -218,16 +218,19 @@ class ProcesadorRegex:
         caracter
     ):
 
+        # Epsilon
         if caracter == "ε":
 
             return True
 
 
+        # Letras
         if caracter.isalpha():
 
             return True
 
 
+        # Números
         if caracter.isdigit():
 
             return True
@@ -304,8 +307,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Verificar si un elemento puede
-    # terminar una expresión
+    # Puede terminar una expresión
     # ---------------------------------
 
     def puede_terminar_expresion(
@@ -336,8 +338,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Verificar si un elemento puede
-    # iniciar una expresión
+    # Puede iniciar una expresión
     # ---------------------------------
 
     def puede_iniciar_expresion(
@@ -361,8 +362,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Saber si existe concatenación
-    # implícita
+    # Verificar concatenación implícita
     # ---------------------------------
 
     def necesita_concatenacion(
@@ -447,7 +447,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Insertar operador de concatenación
+    # Insertar concatenaciones
     # ---------------------------------
 
     def insertar_concatenaciones(self):
@@ -496,7 +496,7 @@ class ProcesadorRegex:
 
 
     # ---------------------------------
-    # Obtener expresión preparada
+    # Obtener expresión concatenada
     # ---------------------------------
 
     def obtener_expresion_concatenada(self):
@@ -504,8 +504,168 @@ class ProcesadorRegex:
         return self.insertar_concatenaciones()
 
 
+    # =================================
+    # CONVERSIÓN INFIJA A POSTFIJA
+    # =================================
+
+    def convertir_a_postfija(self):
+
+        # Primero obtenemos la expresión
+        # con concatenaciones explícitas
+        expresion = (
+            self.obtener_expresion_concatenada()
+        )
+
+
+        if expresion == "":
+
+            return ""
+
+
+        # Resultado final
+        salida = []
+
+
+        # Pila de operadores
+        pila = []
+
+
+        # ---------------------------------
+        # Recorrer la expresión
+        # ---------------------------------
+
+        for caracter in expresion:
+
+
+            # ---------------------------------
+            # 1. Si es símbolo
+            # va directamente a la salida
+            # ---------------------------------
+
+            if self.es_simbolo(
+                caracter
+            ):
+
+                salida.append(
+                    caracter
+                )
+
+                continue
+
+
+            # ---------------------------------
+            # 2. Paréntesis de apertura
+            # ---------------------------------
+
+            if caracter == "(":
+
+                pila.append(
+                    caracter
+                )
+
+                continue
+
+
+            # ---------------------------------
+            # 3. Paréntesis de cierre
+            # ---------------------------------
+
+            if caracter == ")":
+
+                # Sacar operadores hasta
+                # encontrar (
+                while (
+                    pila
+                    and pila[-1] != "("
+                ):
+
+                    salida.append(
+                        pila.pop()
+                    )
+
+
+                # Eliminar (
+                if (
+                    pila
+                    and pila[-1] == "("
+                ):
+
+                    pila.pop()
+
+
+                continue
+
+
+            # ---------------------------------
+            # 4. Operadores
+            # ---------------------------------
+
+            if self.es_operador_procesamiento(
+                caracter
+            ):
+
+
+                # Mientras exista un operador
+                # de mayor o igual precedencia
+                # en la pila, pasa a salida
+                while (
+                    pila
+                    and pila[-1] != "("
+                    and self.tiene_mayor_o_igual_precedencia(
+                        pila[-1],
+                        caracter
+                    )
+                ):
+
+                    salida.append(
+                        pila.pop()
+                    )
+
+
+                # Guardar operador actual
+                pila.append(
+                    caracter
+                )
+
+
+        # ---------------------------------
+        # Vaciar operadores restantes
+        # ---------------------------------
+
+        while pila:
+
+            operador = pila.pop()
+
+
+            # No agregamos paréntesis
+            # al resultado postfijo
+            if operador not in {
+                "(",
+                ")"
+            }:
+
+                salida.append(
+                    operador
+                )
+
+
+        # Convertir lista en texto
+        return "".join(
+            salida
+        )
+
+
     # ---------------------------------
-    # Mostrar tabla de precedencia
+    # Obtener expresión postfija
+    # ---------------------------------
+
+    def obtener_postfija(self):
+
+        return self.convertir_a_postfija()
+
+
+    # ---------------------------------
+    # Mostrar tabla de precedencias
     # ---------------------------------
 
     def mostrar_precedencias(self):
@@ -643,6 +803,12 @@ class ProcesadorRegex:
         print(
             "Expresión con concatenación:",
             self.obtener_expresion_concatenada()
+        )
+
+
+        print(
+            "Expresión postfija:",
+            self.obtener_postfija()
         )
 
 
