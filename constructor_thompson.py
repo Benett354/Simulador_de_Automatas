@@ -125,7 +125,7 @@ class ConstructorThompson:
     # =================================
 
     # ---------------------------------
-    # Crear fragmento para un símbolo
+    # Construir fragmento para un símbolo
     # ---------------------------------
 
     def construir_fragmento_simbolo(
@@ -158,16 +158,9 @@ class ConstructorThompson:
                 f"Símbolo no válido para un fragmento: {simbolo}"
             )
 
-        # Paso 1: crear estado inicial
-
         estado_inicial = self.crear_estado()
 
-        # Paso 2: crear estado final
-
         estado_final = self.crear_estado()
-
-        # Paso 3: conectar ambos estados
-        # mediante el símbolo recibido
 
         self.agregar_transicion(
             estado_inicial,
@@ -175,15 +168,10 @@ class ConstructorThompson:
             estado_final
         )
 
-        # Paso 4: guardar el fragmento
-
         fragmento = FragmentoThompson(
             estado_inicial,
             estado_final
         )
-
-        # Paso 5: agregarlo a la pila
-        # para utilizarlo posteriormente
 
         self.pila_fragmentos.append(
             fragmento
@@ -192,20 +180,14 @@ class ConstructorThompson:
         return fragmento
 
     # ---------------------------------
-    # Crear fragmento para epsilon
+    # Construir fragmento para epsilon
     # ---------------------------------
 
     def construir_fragmento_epsilon(self):
 
-        # Paso 1: crear estado inicial
-
         estado_inicial = self.crear_estado()
 
-        # Paso 2: crear estado final
-
         estado_final = self.crear_estado()
-
-        # Paso 3: conectar mediante epsilon
 
         self.agregar_transicion(
             estado_inicial,
@@ -213,20 +195,180 @@ class ConstructorThompson:
             estado_final
         )
 
-        # Paso 4: guardar el fragmento
-
         fragmento = FragmentoThompson(
             estado_inicial,
             estado_final
         )
-
-        # Paso 5: agregarlo a la pila
 
         self.pila_fragmentos.append(
             fragmento
         )
 
         return fragmento
+
+    # =================================
+    # COMMIT 3: OPERACIÓN DE UNIÓN
+    # =================================
+
+    # ---------------------------------
+    # Validar un fragmento
+    # ---------------------------------
+
+    def validar_fragmento(self, fragmento):
+
+        if not isinstance(
+            fragmento,
+            FragmentoThompson
+        ):
+
+            raise ValueError(
+                "El objeto recibido no es un fragmento Thompson."
+            )
+
+        self.validar_estado(
+            fragmento.estado_inicial
+        )
+
+        self.validar_estado(
+            fragmento.estado_final
+        )
+
+    # ---------------------------------
+    # Retirar fragmento de la pila
+    # ---------------------------------
+
+    def retirar_fragmento_de_pila(
+        self,
+        fragmento
+    ):
+
+        for posicion in range(
+            len(self.pila_fragmentos) - 1,
+            -1,
+            -1
+        ):
+
+            if self.pila_fragmentos[posicion] is fragmento:
+
+                del self.pila_fragmentos[posicion]
+
+                return
+
+    # ---------------------------------
+    # Construir unión de dos fragmentos
+    # ---------------------------------
+
+    def construir_union(
+        self,
+        fragmento_izquierdo=None,
+        fragmento_derecho=None
+    ):
+
+        # Paso 1: obtener los fragmentos
+        # de los argumentos o de la pila
+
+        if (
+            fragmento_izquierdo is None
+            and fragmento_derecho is None
+        ):
+
+            if len(self.pila_fragmentos) < 2:
+
+                raise ValueError(
+                    "Se necesitan dos fragmentos "
+                    "para construir una unión."
+                )
+
+            fragmento_izquierdo = (
+                self.pila_fragmentos[-2]
+            )
+
+            fragmento_derecho = (
+                self.pila_fragmentos[-1]
+            )
+
+        elif (
+            fragmento_izquierdo is None
+            or fragmento_derecho is None
+        ):
+
+            raise ValueError(
+                "Debe proporcionar ambos fragmentos."
+            )
+
+        # Paso 2: comprobar los fragmentos
+
+        self.validar_fragmento(
+            fragmento_izquierdo
+        )
+
+        self.validar_fragmento(
+            fragmento_derecho
+        )
+
+        # Paso 3: retirar los fragmentos
+        # originales de la pila
+
+        self.retirar_fragmento_de_pila(
+            fragmento_izquierdo
+        )
+
+        self.retirar_fragmento_de_pila(
+            fragmento_derecho
+        )
+
+        # Paso 4: crear un nuevo estado inicial
+
+        nuevo_inicial = self.crear_estado()
+
+        # Paso 5: crear un nuevo estado final
+
+        nuevo_final = self.crear_estado()
+
+        # Paso 6: conectar el nuevo inicial
+        # con los iniciales de ambos fragmentos
+
+        self.agregar_transicion(
+            nuevo_inicial,
+            self.EPSILON,
+            fragmento_izquierdo.estado_inicial
+        )
+
+        self.agregar_transicion(
+            nuevo_inicial,
+            self.EPSILON,
+            fragmento_derecho.estado_inicial
+        )
+
+        # Paso 7: conectar los finales originales
+        # con el nuevo estado final
+
+        self.agregar_transicion(
+            fragmento_izquierdo.estado_final,
+            self.EPSILON,
+            nuevo_final
+        )
+
+        self.agregar_transicion(
+            fragmento_derecho.estado_final,
+            self.EPSILON,
+            nuevo_final
+        )
+
+        # Paso 8: crear el fragmento resultante
+
+        nuevo_fragmento = FragmentoThompson(
+            nuevo_inicial,
+            nuevo_final
+        )
+
+        # Paso 9: guardar el resultado en la pila
+
+        self.pila_fragmentos.append(
+            nuevo_fragmento
+        )
+
+        return nuevo_fragmento
 
     # ---------------------------------
     # Obtener estados
