@@ -26,11 +26,8 @@ class ConstructorThompson:
     def __init__(self):
 
         self.estados = set()
-
         self.transiciones = {}
-
         self.contador_estados = 0
-
         self.pila_fragmentos = []
 
     # ---------------------------------
@@ -42,7 +39,6 @@ class ConstructorThompson:
         estado = f"q{self.contador_estados}"
 
         self.contador_estados += 1
-
         self.estados.add(estado)
 
         return estado
@@ -71,7 +67,6 @@ class ConstructorThompson:
     ):
 
         self.validar_estado(origen)
-
         self.validar_estado(destino)
 
         clave = (origen, simbolo)
@@ -94,12 +89,9 @@ class ConstructorThompson:
 
         clave = (estado, simbolo)
 
-        destinos = self.transiciones.get(
-            clave,
-            set()
+        return set(
+            self.transiciones.get(clave, set())
         )
-
-        return set(destinos)
 
     # ---------------------------------
     # Crear fragmento con estados existentes
@@ -112,7 +104,6 @@ class ConstructorThompson:
     ):
 
         self.validar_estado(estado_inicial)
-
         self.validar_estado(estado_final)
 
         return FragmentoThompson(
@@ -124,10 +115,11 @@ class ConstructorThompson:
     # COMMIT 2: FRAGMENTOS BÁSICOS
     # =================================
 
-    def construir_fragmento_simbolo(
-        self,
-        simbolo
-    ):
+    # ---------------------------------
+    # Construir fragmento para un símbolo
+    # ---------------------------------
+
+    def construir_fragmento_simbolo(self, simbolo):
 
         if not isinstance(simbolo, str):
 
@@ -155,7 +147,6 @@ class ConstructorThompson:
             )
 
         estado_inicial = self.crear_estado()
-
         estado_final = self.crear_estado()
 
         self.agregar_transicion(
@@ -169,9 +160,7 @@ class ConstructorThompson:
             estado_final
         )
 
-        self.pila_fragmentos.append(
-            fragmento
-        )
+        self.pila_fragmentos.append(fragmento)
 
         return fragmento
 
@@ -182,7 +171,6 @@ class ConstructorThompson:
     def construir_fragmento_epsilon(self):
 
         estado_inicial = self.crear_estado()
-
         estado_final = self.crear_estado()
 
         self.agregar_transicion(
@@ -196,19 +184,13 @@ class ConstructorThompson:
             estado_final
         )
 
-        self.pila_fragmentos.append(
-            fragmento
-        )
+        self.pila_fragmentos.append(fragmento)
 
         return fragmento
 
     # =================================
-    # COMMIT 3: OPERACIÓN DE UNIÓN
+    # VALIDACIÓN DE FRAGMENTOS
     # =================================
-
-    # ---------------------------------
-    # Validar un fragmento
-    # ---------------------------------
 
     def validar_fragmento(self, fragmento):
 
@@ -230,13 +212,10 @@ class ConstructorThompson:
         )
 
     # ---------------------------------
-    # Retirar fragmento de la pila
+    # Retirar un fragmento de la pila
     # ---------------------------------
 
-    def retirar_fragmento_de_pila(
-        self,
-        fragmento
-    ):
+    def retirar_fragmento_de_pila(self, fragmento):
 
         for posicion in range(
             len(self.pila_fragmentos) - 1,
@@ -250,15 +229,17 @@ class ConstructorThompson:
 
                 return
 
-    # ---------------------------------
-    # Construir unión
-    # ---------------------------------
+    # =================================
+    # COMMIT 3: OPERACIÓN DE UNIÓN
+    # =================================
 
     def construir_union(
         self,
         fragmento_izquierdo=None,
         fragmento_derecho=None
     ):
+
+        # Paso 1: obtener los fragmentos
 
         if (
             fragmento_izquierdo is None
@@ -272,13 +253,8 @@ class ConstructorThompson:
                     "para construir una unión."
                 )
 
-            fragmento_izquierdo = (
-                self.pila_fragmentos[-2]
-            )
-
-            fragmento_derecho = (
-                self.pila_fragmentos[-1]
-            )
+            fragmento_izquierdo = self.pila_fragmentos[-2]
+            fragmento_derecho = self.pila_fragmentos[-1]
 
         elif (
             fragmento_izquierdo is None
@@ -289,13 +265,10 @@ class ConstructorThompson:
                 "Debe proporcionar ambos fragmentos."
             )
 
-        self.validar_fragmento(
-            fragmento_izquierdo
-        )
+        # Paso 2: validar los fragmentos
 
-        self.validar_fragmento(
-            fragmento_derecho
-        )
+        self.validar_fragmento(fragmento_izquierdo)
+        self.validar_fragmento(fragmento_derecho)
 
         if fragmento_izquierdo is fragmento_derecho:
 
@@ -303,6 +276,8 @@ class ConstructorThompson:
                 "La unión necesita dos fragmentos diferentes."
             )
 
+        # Paso 3: retirar los fragmentos originales
+
         self.retirar_fragmento_de_pila(
             fragmento_izquierdo
         )
@@ -311,9 +286,13 @@ class ConstructorThompson:
             fragmento_derecho
         )
 
-        nuevo_inicial = self.crear_estado()
+        # Paso 4: crear nuevos estados
 
+        nuevo_inicial = self.crear_estado()
         nuevo_final = self.crear_estado()
+
+        # Paso 5: conectar el nuevo inicial
+        # con los dos fragmentos
 
         self.agregar_transicion(
             nuevo_inicial,
@@ -326,6 +305,9 @@ class ConstructorThompson:
             self.EPSILON,
             fragmento_derecho.estado_inicial
         )
+
+        # Paso 6: conectar los dos finales
+        # con el nuevo estado final
 
         self.agregar_transicion(
             fragmento_izquierdo.estado_final,
@@ -339,14 +321,14 @@ class ConstructorThompson:
             nuevo_final
         )
 
+        # Paso 7: guardar el resultado
+
         nuevo_fragmento = FragmentoThompson(
             nuevo_inicial,
             nuevo_final
         )
 
-        self.pila_fragmentos.append(
-            nuevo_fragmento
-        )
+        self.pila_fragmentos.append(nuevo_fragmento)
 
         return nuevo_fragmento
 
@@ -360,7 +342,7 @@ class ConstructorThompson:
         fragmento_derecho=None
     ):
 
-        # Paso 1: obtener los dos fragmentos
+        # Paso 1: obtener los fragmentos
 
         if (
             fragmento_izquierdo is None
@@ -374,13 +356,8 @@ class ConstructorThompson:
                     "para construir una concatenación."
                 )
 
-            fragmento_izquierdo = (
-                self.pila_fragmentos[-2]
-            )
-
-            fragmento_derecho = (
-                self.pila_fragmentos[-1]
-            )
+            fragmento_izquierdo = self.pila_fragmentos[-2]
+            fragmento_derecho = self.pila_fragmentos[-1]
 
         elif (
             fragmento_izquierdo is None
@@ -393,23 +370,16 @@ class ConstructorThompson:
 
         # Paso 2: validar los fragmentos
 
-        self.validar_fragmento(
-            fragmento_izquierdo
-        )
-
-        self.validar_fragmento(
-            fragmento_derecho
-        )
+        self.validar_fragmento(fragmento_izquierdo)
+        self.validar_fragmento(fragmento_derecho)
 
         if fragmento_izquierdo is fragmento_derecho:
 
             raise ValueError(
-                "La concatenación necesita "
-                "dos fragmentos diferentes."
+                "La concatenación necesita dos fragmentos diferentes."
             )
 
-        # Paso 3: retirar los fragmentos
-        # originales de la pila
+        # Paso 3: retirar los fragmentos de la pila
 
         self.retirar_fragmento_de_pila(
             fragmento_izquierdo
@@ -419,9 +389,7 @@ class ConstructorThompson:
             fragmento_derecho
         )
 
-        # Paso 4: conectar el estado final
-        # del primer fragmento con el inicial
-        # del segundo mediante epsilon
+        # Paso 4: conectar ambos fragmentos con epsilon
 
         self.agregar_transicion(
             fragmento_izquierdo.estado_final,
@@ -429,38 +397,114 @@ class ConstructorThompson:
             fragmento_derecho.estado_inicial
         )
 
-        # Paso 5: conservar el estado inicial
-        # del primer fragmento
+        # Paso 5: conservar el inicial del primero
+        # y el final del segundo
 
-        nuevo_inicial = (
-            fragmento_izquierdo.estado_inicial
-        )
-
-        # Paso 6: conservar el estado final
-        # del segundo fragmento
-
-        nuevo_final = (
+        nuevo_fragmento = FragmentoThompson(
+            fragmento_izquierdo.estado_inicial,
             fragmento_derecho.estado_final
         )
 
-        # Paso 7: crear el fragmento combinado
+        # Paso 6: guardar el resultado
+
+        self.pila_fragmentos.append(nuevo_fragmento)
+
+        return nuevo_fragmento
+
+    # =================================
+    # COMMIT 5: CERRADURA DE KLEENE
+    # =================================
+
+    def construir_cerradura_kleene(self, fragmento=None):
+
+        # Paso 1: obtener el fragmento
+
+        if fragmento is None:
+
+            if not self.pila_fragmentos:
+
+                raise ValueError(
+                    "Se necesita un fragmento "
+                    "para construir la cerradura de Kleene."
+                )
+
+            fragmento = self.pila_fragmentos[-1]
+
+        # Paso 2: validar el fragmento
+
+        self.validar_fragmento(fragmento)
+
+        # Paso 3: retirar el fragmento original
+        # de la pila
+
+        self.retirar_fragmento_de_pila(fragmento)
+
+        # Paso 4: crear un nuevo estado inicial
+
+        nuevo_inicial = self.crear_estado()
+
+        # Paso 5: crear un nuevo estado final
+
+        nuevo_final = self.crear_estado()
+
+        # Paso 6: permitir entrar al fragmento
+
+        self.agregar_transicion(
+            nuevo_inicial,
+            self.EPSILON,
+            fragmento.estado_inicial
+        )
+
+        # Paso 7: permitir cero repeticiones
+
+        self.agregar_transicion(
+            nuevo_inicial,
+            self.EPSILON,
+            nuevo_final
+        )
+
+        # Paso 8: permitir repetir el fragmento
+
+        self.agregar_transicion(
+            fragmento.estado_final,
+            self.EPSILON,
+            fragmento.estado_inicial
+        )
+
+        # Paso 9: permitir salir del fragmento
+
+        self.agregar_transicion(
+            fragmento.estado_final,
+            self.EPSILON,
+            nuevo_final
+        )
+
+        # Paso 10: construir el fragmento resultante
 
         nuevo_fragmento = FragmentoThompson(
             nuevo_inicial,
             nuevo_final
         )
 
-        # Paso 8: guardar el resultado en la pila
+        # Paso 11: guardar el resultado
 
-        self.pila_fragmentos.append(
-            nuevo_fragmento
-        )
+        self.pila_fragmentos.append(nuevo_fragmento)
 
         return nuevo_fragmento
 
     # ---------------------------------
-    # Obtener estados
+    # Alias para la cerradura de Kleene
     # ---------------------------------
+
+    def construir_kleene(self, fragmento=None):
+
+        return self.construir_cerradura_kleene(
+            fragmento
+        )
+
+    # =================================
+    # CONSULTAS
+    # =================================
 
     def obtener_estados(self):
 
@@ -468,10 +512,6 @@ class ConstructorThompson:
             self.estados,
             key=lambda estado: int(estado[1:])
         )
-
-    # ---------------------------------
-    # Obtener transiciones
-    # ---------------------------------
 
     def obtener_transiciones(self):
 
@@ -490,11 +530,8 @@ class ConstructorThompson:
     def reiniciar(self):
 
         self.estados.clear()
-
         self.transiciones.clear()
-
         self.contador_estados = 0
-
         self.pila_fragmentos.clear()
 
     # ---------------------------------
@@ -506,7 +543,6 @@ class ConstructorThompson:
         print("\n===== CONSTRUCTOR DE THOMPSON =====")
 
         print("Estados:", self.obtener_estados())
-
         print("Transiciones:")
 
         for (origen, simbolo), destinos in sorted(
