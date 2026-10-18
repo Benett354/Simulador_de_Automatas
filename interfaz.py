@@ -310,6 +310,13 @@ class Interfaz:
         )
 
         herramientas.add_command(
+            label="Expresión regular → AFN-ε",
+            command=self.abrir_formulario_regex
+        )
+
+        herramientas.add_separator()
+
+        herramientas.add_command(
             label="Conversión AFN → AFD",
             command=self.convertir_afn_afd
         )
@@ -479,6 +486,17 @@ class Interfaz:
             text="Crear Autómata",
             style="Primary.TButton",
             command=self.abrir_formulario
+        ).pack(
+            fill="x",
+            padx=18,
+            pady=5
+        )
+
+        ttk.Button(
+            panel_izquierdo,
+            text="Expresión regular → AFN-ε",
+            style="Secondary.TButton",
+            command=self.abrir_formulario_regex
         ).pack(
             fill="x",
             padx=18,
@@ -863,6 +881,40 @@ class Interfaz:
         FormularioAutomata(
             self.ventana,
             self.recibir_automata
+        )
+
+
+    # =====================================================
+    # EXPRESIÓN REGULAR → AFN-ε (THOMPSON)
+    # =====================================================
+
+    def abrir_formulario_regex(self):
+
+        if self.hay_ventana_modal():
+            return
+
+        if self.automata_actual is not None:
+
+            respuesta = messagebox.askyesno(
+                "Generar AFN-ε",
+                (
+                    "Actualmente existe un autómata cargado.\n\n"
+                    "Al generar el AFN desde una expresión regular, "
+                    "se reemplazará el autómata actual.\n\n"
+                    "¿Desea continuar?"
+                ),
+                parent=self.ventana
+            )
+
+            if not respuesta:
+                return
+
+        from formulario_regex import FormularioRegex
+
+        FormularioRegex(
+            self.ventana,
+            self.recibir_automata,
+            self.mostrar_automata
         )
 
 
