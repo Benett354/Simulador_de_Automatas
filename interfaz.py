@@ -328,6 +328,11 @@ class Interfaz:
         herramientas.add_separator()
 
         herramientas.add_command(
+            label="Expresión regular → AFN-ε",
+            command=self.abrir_formulario_regex
+        )
+
+        herramientas.add_command(
             label="Visor de registros",
             command=self.abrir_visor_logs
         )
@@ -455,12 +460,67 @@ class Interfaz:
             False
         )
 
+        # El panel lateral puede desplazarse si no caben todos los botones.
+        canvas_izquierdo = tk.Canvas(
+            panel_izquierdo,
+            bg=self.COLOR_PANEL,
+            highlightthickness=0,
+            width=240
+        )
+
+        barra_lateral = ttk.Scrollbar(
+            panel_izquierdo,
+            orient="vertical",
+            command=canvas_izquierdo.yview
+        )
+
+        canvas_izquierdo.configure(
+            yscrollcommand=barra_lateral.set
+        )
+
+        barra_lateral.pack(
+            side="right",
+            fill="y"
+        )
+
+        canvas_izquierdo.pack(
+            side="left",
+            expand=True,
+            fill="both"
+        )
+
+        contenido_izquierdo = tk.Frame(
+            canvas_izquierdo,
+            bg=self.COLOR_PANEL
+        )
+
+        ventana_contenido = canvas_izquierdo.create_window(
+            (0, 0),
+            window=contenido_izquierdo,
+            anchor="nw"
+        )
+
+        contenido_izquierdo.bind(
+            "<Configure>",
+            lambda evento: canvas_izquierdo.configure(
+                scrollregion=canvas_izquierdo.bbox("all")
+            )
+        )
+
+        canvas_izquierdo.bind(
+            "<Configure>",
+            lambda evento: canvas_izquierdo.itemconfigure(
+                ventana_contenido,
+                width=evento.width
+            )
+        )
+
         # ---------------------------------
         # Título lateral
         # ---------------------------------
 
         tk.Label(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="CONTROL",
             font=("Arial", 11, "bold"),
             bg=self.COLOR_PANEL,
@@ -472,7 +532,7 @@ class Interfaz:
         )
 
         tk.Label(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Administración del autómata",
             font=("Arial", 9),
             bg=self.COLOR_PANEL,
@@ -488,7 +548,7 @@ class Interfaz:
         # ---------------------------------
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Crear Autómata",
             style="Primary.TButton",
             command=self.abrir_formulario
@@ -503,7 +563,7 @@ class Interfaz:
         # ---------------------------------
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Administrar Transiciones",
             style="Secondary.TButton",
             command=self.abrir_transiciones
@@ -518,7 +578,7 @@ class Interfaz:
         # ---------------------------------
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Ver Autómata",
             style="Secondary.TButton",
             command=self.mostrar_automata
@@ -533,7 +593,7 @@ class Interfaz:
         # ---------------------------------
 
         ttk.Separator(
-            panel_izquierdo,
+            contenido_izquierdo,
             orient="horizontal"
         ).pack(
             fill="x",
@@ -546,7 +606,7 @@ class Interfaz:
         # ---------------------------------
 
         tk.Label(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="HERRAMIENTAS",
             font=("Arial", 11, "bold"),
             bg=self.COLOR_PANEL,
@@ -558,7 +618,7 @@ class Interfaz:
         )
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Convertir AFN → AFD",
             style="Secondary.TButton",
             command=self.convertir_afn_afd
@@ -569,7 +629,7 @@ class Interfaz:
         )
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Minimizar AFD",
             style="Secondary.TButton",
             command=self.minimizar_afd
@@ -579,8 +639,20 @@ class Interfaz:
             pady=5
         )
 
+        # Herramienta incorporada en la segunda fase.
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
+            text="Expresión regular → AFN-ε",
+            style="Primary.TButton",
+            command=self.abrir_formulario_regex
+        ).pack(
+            fill="x",
+            padx=18,
+            pady=5
+        )
+
+        ttk.Button(
+            contenido_izquierdo,
             text="Visor de registros",
             style="Secondary.TButton",
             command=self.abrir_visor_logs
@@ -595,7 +667,7 @@ class Interfaz:
         # ---------------------------------
 
         ttk.Separator(
-            panel_izquierdo,
+            contenido_izquierdo,
             orient="horizontal"
         ).pack(
             fill="x",
@@ -604,7 +676,7 @@ class Interfaz:
         )
 
         tk.Label(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="SIMULACIÓN",
             font=("Arial", 11, "bold"),
             bg=self.COLOR_PANEL,
@@ -616,7 +688,7 @@ class Interfaz:
         )
 
         tk.Label(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Cadena a evaluar",
             font=("Arial", 9),
             bg=self.COLOR_PANEL,
@@ -627,7 +699,7 @@ class Interfaz:
         )
 
         self.entrada_cadena = tk.Entry(
-            panel_izquierdo,
+            contenido_izquierdo,
             font=("Arial", 11),
             bg="white",
             fg=self.COLOR_TEXTO,
@@ -646,7 +718,7 @@ class Interfaz:
         )
 
         tk.Label(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Campo vacío = cadena ε",
             font=("Arial", 8),
             bg=self.COLOR_PANEL,
@@ -658,7 +730,7 @@ class Interfaz:
         )
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Simular Cadena",
             style="Success.TButton",
             command=self.simular_cadena
@@ -673,7 +745,7 @@ class Interfaz:
         # ---------------------------------
 
         ttk.Button(
-            panel_izquierdo,
+            contenido_izquierdo,
             text="Limpiar Panel",
             style="Secondary.TButton",
             command=self.limpiar_panel
@@ -885,6 +957,44 @@ class Interfaz:
             messagebox.showerror(
                 "Error al abrir los registros",
                 f"No se pudo abrir el visor de registros:\n{error}",
+                parent=self.ventana
+            )
+
+
+    # =====================================================
+    # EXPRESIONES REGULARES Y CONSTRUCTOR DE THOMPSON (FASE 2)
+    # =====================================================
+
+    def abrir_formulario_regex(self):
+
+        if self.hay_ventana_modal():
+            return
+
+        try:
+            self.registro_logs.info(
+                "Se abrió la herramienta de expresiones regulares y Thompson"
+            )
+
+            from formulario_regex import FormularioRegex
+
+            FormularioRegex(
+                self.ventana,
+                self.recibir_automata,
+                self.mostrar_automata
+            )
+
+        except Exception as error:
+            self.registro_logs.excepcion(
+                "No se pudo abrir la herramienta de expresiones regulares y Thompson"
+            )
+
+            messagebox.showerror(
+                "Error al abrir la Fase 2",
+                (
+                    "No se pudo abrir el constructor de Thompson.\n\n"
+                    f"Detalle: {error}\n\n"
+                    "Verifica que formulario_regex.py esté en la carpeta principal del proyecto."
+                ),
                 parent=self.ventana
             )
 

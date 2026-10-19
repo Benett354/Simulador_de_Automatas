@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+from registro_logs import RegistroLogs
+
 
 class VentanaTransiciones:
 
@@ -12,6 +14,11 @@ class VentanaTransiciones:
     ):
 
         self.automata = automata
+        self.registro_logs = RegistroLogs()
+        self.registro_logs.info(
+            f"Se abrió el editor de transiciones: tipo={automata.tipo}, "
+            f"estados={len(automata.estados)}"
+        )
 
         self.ventana = tk.Toplevel(
             ventana_padre
@@ -272,6 +279,10 @@ class VentanaTransiciones:
 
         if not origen:
 
+            self.registro_logs.advertencia(
+                "No se agregó transición: falta seleccionar el estado origen"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Seleccione el estado origen.",
@@ -281,6 +292,10 @@ class VentanaTransiciones:
             return
 
         if not simbolo:
+
+            self.registro_logs.advertencia(
+                f"No se agregó transición desde {origen}: falta seleccionar símbolo"
+            )
 
             messagebox.showwarning(
                 "Advertencia",
@@ -292,6 +307,10 @@ class VentanaTransiciones:
 
         if not destino:
 
+            self.registro_logs.advertencia(
+                f"No se agregó transición desde {origen} con símbolo {simbolo!r}: falta destino"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Seleccione el estado destino.",
@@ -302,14 +321,15 @@ class VentanaTransiciones:
 
         try:
 
-            cantidad_antes = len(
-                self.automata.transiciones
-            )
-
             self.automata.agregar_transicion(
                 origen,
                 simbolo,
                 destino
+            )
+
+            self.registro_logs.info(
+                f"Transición agregada: {origen} --{simbolo}--> {destino} "
+                f"(tipo={self.automata.tipo})"
             )
 
             self.actualizar_tabla()
@@ -321,6 +341,10 @@ class VentanaTransiciones:
 
         except ValueError as error:
 
+            self.registro_logs.advertencia(
+                f"Transición inválida {origen} --{simbolo}--> {destino}: {error}"
+            )
+
             messagebox.showerror(
                 "Transición inválida",
                 str(error),
@@ -328,6 +352,10 @@ class VentanaTransiciones:
             )
 
         except Exception as error:
+
+            self.registro_logs.excepcion(
+                f"Error inesperado al agregar transición {origen} --{simbolo}--> {destino}"
+            )
 
             messagebox.showerror(
                 "Error",
@@ -345,6 +373,10 @@ class VentanaTransiciones:
         seleccion = self.tabla.selection()
 
         if not seleccion:
+
+            self.registro_logs.advertencia(
+                "Se intentó eliminar una transición sin seleccionar una fila"
+            )
 
             messagebox.showwarning(
                 "Advertencia",
@@ -364,6 +396,10 @@ class VentanaTransiciones:
 
         if len(valores) != 3:
 
+            self.registro_logs.error(
+                "No se pudieron obtener los datos de la transición seleccionada"
+            )
+
             messagebox.showerror(
                 "Error",
                 "No se pudieron obtener los datos de la transición.",
@@ -372,20 +408,11 @@ class VentanaTransiciones:
 
             return
 
-        # IMPORTANTE:
         # Treeview puede convertir "0" o "1"
         # automáticamente a números.
-        origen = str(
-            valores[0]
-        )
-
-        simbolo = str(
-            valores[1]
-        )
-
-        destino = str(
-            valores[2]
-        )
+        origen = str(valores[0])
+        simbolo = str(valores[1])
+        destino = str(valores[2])
 
         respuesta = messagebox.askyesno(
             "Confirmar eliminación",
@@ -398,6 +425,10 @@ class VentanaTransiciones:
 
         if not respuesta:
 
+            self.registro_logs.info(
+                f"Eliminación cancelada para transición {origen} --{simbolo}--> {destino}"
+            )
+
             return
 
         try:
@@ -406,6 +437,11 @@ class VentanaTransiciones:
                 origen,
                 simbolo,
                 destino
+            )
+
+            self.registro_logs.info(
+                f"Transición eliminada: {origen} --{simbolo}--> {destino} "
+                f"(tipo={self.automata.tipo})"
             )
 
             self.actualizar_tabla()
@@ -418,6 +454,10 @@ class VentanaTransiciones:
 
         except ValueError as error:
 
+            self.registro_logs.advertencia(
+                f"No se pudo eliminar transición {origen} --{simbolo}--> {destino}: {error}"
+            )
+
             messagebox.showerror(
                 "Error",
                 str(error),
@@ -425,6 +465,10 @@ class VentanaTransiciones:
             )
 
         except Exception as error:
+
+            self.registro_logs.excepcion(
+                f"Error inesperado al eliminar transición {origen} --{simbolo}--> {destino}"
+            )
 
             messagebox.showerror(
                 "Error inesperado",
@@ -492,6 +536,8 @@ class VentanaTransiciones:
     # ---------------------------------
 
     def cerrar(self):
+
+        self.registro_logs.info("Se cerró el editor de transiciones")
 
         try:
 
