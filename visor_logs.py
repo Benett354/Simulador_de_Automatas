@@ -401,13 +401,18 @@ class VisorLogs:
 
         self.aplicar_filtro()
 
+
+
+
     # =================================
-    # APLICAR FILTRO
+    # APLICAR FILTRO Y PRIORIZAR ERRORES
     # =================================
 
     def aplicar_filtro(self):
 
         filtro = self.filtro_var.get()
+
+        # Filtrar los registros por nivel
 
         if filtro == "TODOS":
 
@@ -423,15 +428,47 @@ class VisorLogs:
                 if registro["nivel"] == filtro
             ]
 
-        # Limpiar tabla anterior
+        # Orden de prioridad: los errores aparecen primero
+
+        prioridad = {
+            "CRITICAL": 0,
+            "ERROR": 1,
+            "INVALIDO": 2,
+            "WARNING": 3,
+            "INFO": 4,
+            "DEBUG": 5
+        }
+
+        # Primero ordenar por fecha y número de línea,
+        # colocando los registros más recientes arriba.
+
+        self.registros_visibles.sort(
+            key=lambda registro: (
+                registro.get("fecha", ""),
+                registro.get("linea", 0)
+            ),
+            reverse=True
+        )
+
+        # Después ordenar por prioridad.
+        # El ordenamiento estable conserva el orden
+        # cronológico dentro de cada nivel.
+
+        self.registros_visibles.sort(
+            key=lambda registro: prioridad.get(
+                registro["nivel"],
+                99
+            )
+        )
+
+        # Limpiar la tabla anterior
 
         elementos = self.tabla.get_children()
 
         if elementos:
-
             self.tabla.delete(*elementos)
 
-        # Insertar los registros filtrados
+        # Mostrar los registros ordenados
 
         for indice, registro in enumerate(
             self.registros_visibles
@@ -452,9 +489,10 @@ class VisorLogs:
                 tags=(nivel,)
             )
 
-        # Actualizar la cantidad visible
+        # Actualizar la ventana
 
         self.ventana.update_idletasks()
+
 
     # =================================
     # MOSTRAR TODOS LOS REGISTROS
