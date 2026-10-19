@@ -11,6 +11,8 @@ class VisorLogs:
 
         self.padre = padre
         self.ventana = tk.Toplevel(padre)
+        self.ventana.transient(padre)
+        self.ventana.grab_set()
 
         self.ventana.title("Visor de registros del simulador")
         self.ventana.geometry("1050x650")

@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+from registro_logs import RegistroLogs
+
 
 class Interfaz:
 
@@ -49,6 +51,10 @@ class Interfaz:
         self.ventana.configure(
             bg=self.COLOR_FONDO
         )
+
+        # Registro automático de eventos
+        self.registro_logs = RegistroLogs()
+        self.registro_logs.info("Aplicación iniciada")
 
         # Autómata actualmente cargado
         self.automata_actual = None
@@ -310,13 +316,6 @@ class Interfaz:
         )
 
         herramientas.add_command(
-            label="Expresión regular → AFN-ε",
-            command=self.abrir_formulario_regex
-        )
-
-        herramientas.add_separator()
-
-        herramientas.add_command(
             label="Conversión AFN → AFD",
             command=self.convertir_afn_afd
         )
@@ -324,6 +323,13 @@ class Interfaz:
         herramientas.add_command(
             label="Minimización AFD",
             command=self.minimizar_afd
+        )
+
+        herramientas.add_separator()
+
+        herramientas.add_command(
+            label="Visor de registros",
+            command=self.abrir_visor_logs
         )
 
         barra_menu.add_cascade(
@@ -492,17 +498,6 @@ class Interfaz:
             pady=5
         )
 
-        ttk.Button(
-            panel_izquierdo,
-            text="Expresión regular → AFN-ε",
-            style="Secondary.TButton",
-            command=self.abrir_formulario_regex
-        ).pack(
-            fill="x",
-            padx=18,
-            pady=5
-        )
-
         # ---------------------------------
         # Transiciones
         # ---------------------------------
@@ -578,6 +573,17 @@ class Interfaz:
             text="Minimizar AFD",
             style="Secondary.TButton",
             command=self.minimizar_afd
+        ).pack(
+            fill="x",
+            padx=18,
+            pady=5
+        )
+
+        ttk.Button(
+            panel_izquierdo,
+            text="Visor de registros",
+            style="Secondary.TButton",
+            command=self.abrir_visor_logs
         ).pack(
             fill="x",
             padx=18,
@@ -854,6 +860,36 @@ class Interfaz:
 
 
     # =====================================================
+    # VISOR DE REGISTROS
+    # =====================================================
+
+    def abrir_visor_logs(self):
+
+        if self.hay_ventana_modal():
+            return
+
+        try:
+
+            self.registro_logs.info("Se abrió el visor de registros")
+
+            from visor_logs import VisorLogs
+
+            VisorLogs(self.ventana)
+
+        except Exception as error:
+
+            self.registro_logs.excepcion(
+                "No se pudo abrir el visor de registros"
+            )
+
+            messagebox.showerror(
+                "Error al abrir los registros",
+                f"No se pudo abrir el visor de registros:\n{error}",
+                parent=self.ventana
+            )
+
+
+    # =====================================================
     # ABRIR FORMULARIO
     # =====================================================
 
@@ -885,40 +921,6 @@ class Interfaz:
 
 
     # =====================================================
-    # EXPRESIÓN REGULAR → AFN-ε (THOMPSON)
-    # =====================================================
-
-    def abrir_formulario_regex(self):
-
-        if self.hay_ventana_modal():
-            return
-
-        if self.automata_actual is not None:
-
-            respuesta = messagebox.askyesno(
-                "Generar AFN-ε",
-                (
-                    "Actualmente existe un autómata cargado.\n\n"
-                    "Al generar el AFN desde una expresión regular, "
-                    "se reemplazará el autómata actual.\n\n"
-                    "¿Desea continuar?"
-                ),
-                parent=self.ventana
-            )
-
-            if not respuesta:
-                return
-
-        from formulario_regex import FormularioRegex
-
-        FormularioRegex(
-            self.ventana,
-            self.recibir_automata,
-            self.mostrar_automata
-        )
-
-
-    # =====================================================
     # RECIBIR AUTÓMATA
     # =====================================================
 
@@ -928,6 +930,12 @@ class Interfaz:
     ):
 
         self.automata_actual = automata
+
+        self.registro_logs.info(
+            f"Autómata creado: tipo={automata.tipo}, "
+            f"estados={len(automata.estados)}, "
+            f"transiciones={len(automata.transiciones)}"
+        )
 
         self.entrada_cadena.delete(
             0,
@@ -1020,6 +1028,10 @@ class Interfaz:
 
         if self.automata_actual is None:
 
+            self.registro_logs.warning(
+                "Se intentó simular una cadena sin un autómata cargado"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Primero cree un autómata.",
@@ -1030,26 +1042,63 @@ class Interfaz:
 
         cadena = self.entrada_cadena.get()
 
-        from simulador import Simulador
+        try:
 
-        simulador = Simulador(
-            self.automata_actual
-        )
+            from simulador import Simulador
 
-        if self.automata_actual.tipo == "AFD":
+            simulador = Simulador(
+                self.automata_actual
+            )
 
-            aceptada, recorrido, resultado = (
-                simulador.simular_afd(
-                    cadena
+            if self.automata_actual.tipo == "AFD":
+
+                aceptada, recorrido, resultado = (
+                    simulador.simular_afd(
+                        cadena
+                    )
                 )
+
+            else:
+
+                aceptada, recorrido, resultado = (
+                    simulador.simular_afn(
+                        cadena
+                    )
+                )
+
+        except Exception as error:
+
+            self.registro_logs.excepcion(
+                "Error inesperado durante la simulación de una cadena"
+            )
+
+            messagebox.showerror(
+                "Error en simulación",
+                str(error),
+                parent=self.ventana
+            )
+
+            return
+
+        if aceptada:
+
+            self.registro_logs.info(
+                f"Simulación {self.automata_actual.tipo}: "
+                f"cadena={cadena!r}, resultado=aceptada"
+            )
+
+        elif resultado.strip() != "Cadena rechazada":
+
+            self.registro_logs.error(
+                f"Error de simulación {self.automata_actual.tipo}: "
+                f"cadena={cadena!r}, detalle={resultado}"
             )
 
         else:
 
-            aceptada, recorrido, resultado = (
-                simulador.simular_afn(
-                    cadena
-                )
+            self.registro_logs.warning(
+                f"Simulación {self.automata_actual.tipo}: "
+                f"cadena={cadena!r}, resultado=rechazada"
             )
 
         self.area_texto.insert(
@@ -1153,6 +1202,10 @@ class Interfaz:
 
         if self.automata_actual is None:
 
+            self.registro_logs.warning(
+                "Se intentó convertir a AFD sin un autómata cargado"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Primero cree un AFN.",
@@ -1162,6 +1215,10 @@ class Interfaz:
             return
 
         if self.automata_actual.tipo != "AFN":
+
+            self.registro_logs.warning(
+                f"Conversión rechazada: el tipo actual es {self.automata_actual.tipo}, no AFN"
+            )
 
             messagebox.showwarning(
                 "Advertencia",
@@ -1174,6 +1231,11 @@ class Interfaz:
         errores = self.automata_actual.validar()
 
         if errores:
+
+            self.registro_logs.error(
+                "Conversión AFN a AFD cancelada por validación: "
+                + " | ".join(errores)
+            )
 
             messagebox.showerror(
                 "Error",
@@ -1240,6 +1302,12 @@ class Interfaz:
 
             self.automata_actual = afd
 
+            self.registro_logs.info(
+                f"Conversión AFN a AFD completada: "
+                f"estados={len(afd.estados)}, "
+                f"transiciones={len(afd.transiciones)}"
+            )
+
             self.estado_sistema.set(
                 (
                     f"Autómata actual: AFD convertido   |   "
@@ -1264,6 +1332,10 @@ class Interfaz:
             )
 
         except Exception as error:
+
+            self.registro_logs.excepcion(
+                "Error inesperado durante la conversión AFN a AFD"
+            )
 
             messagebox.showerror(
                 "Error",
@@ -1454,6 +1526,10 @@ class Interfaz:
 
         if self.automata_actual is None:
 
+            self.registro_logs.warning(
+                "Se intentó minimizar un AFD sin un autómata cargado"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Primero cree un AFD.",
@@ -1463,6 +1539,10 @@ class Interfaz:
             return
 
         if self.automata_actual.tipo != "AFD":
+
+            self.registro_logs.warning(
+                f"Minimización rechazada: el tipo actual es {self.automata_actual.tipo}, no AFD"
+            )
 
             messagebox.showwarning(
                 "Advertencia",
@@ -1527,6 +1607,12 @@ class Interfaz:
 
             self.automata_actual = afd_minimo
 
+            self.registro_logs.info(
+                f"Minimización de AFD completada: "
+                f"estados={len(afd_minimo.estados)}, "
+                f"transiciones={len(afd_minimo.transiciones)}"
+            )
+
             self.estado_sistema.set(
                 (
                     f"Autómata actual: AFD mínimo   |   "
@@ -1551,6 +1637,10 @@ class Interfaz:
             )
 
         except Exception as error:
+
+            self.registro_logs.excepcion(
+                "Error inesperado durante la minimización del AFD"
+            )
 
             messagebox.showerror(
                 "Error",
