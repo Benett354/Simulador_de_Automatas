@@ -28,3 +28,6 @@ Thumbs.db
 
 # Registros generados durante la ejecucion
 logs/
+
+# Ejecutables compilados
+*.exe
