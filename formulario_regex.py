@@ -305,7 +305,7 @@ class FormularioRegex:
         )
 
         if not self.validar_expresion():
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "No se construyó el AFN-ε porque la expresión no pasó la validación"
             )
             return
@@ -401,7 +401,7 @@ class FormularioRegex:
 
     def mostrar_grafica(self):
         if self.automata_generado is None:
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "Se solicitó mostrar la gráfica sin un AFN-ε generado"
             )
             return

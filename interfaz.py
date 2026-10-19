@@ -1134,7 +1134,7 @@ class Interfaz:
 
         if self.automata_actual is None:
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "Se intentó abrir el editor de transiciones sin un autómata cargado"
             )
 
@@ -1180,7 +1180,7 @@ class Interfaz:
 
         if self.automata_actual is None:
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "Se intentó simular una cadena sin un autómata cargado"
             )
 
@@ -1248,7 +1248,7 @@ class Interfaz:
 
         else:
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 f"Simulación {self.automata_actual.tipo}: "
                 f"cadena={cadena!r}, resultado=rechazada"
             )
@@ -1327,7 +1327,7 @@ class Interfaz:
 
         if self.automata_actual is None:
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "Se intentó visualizar un autómata sin tener uno cargado"
             )
 
@@ -1374,7 +1374,7 @@ class Interfaz:
 
         if self.automata_actual is None:
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "Se intentó convertir a AFD sin un autómata cargado"
             )
 
@@ -1388,7 +1388,7 @@ class Interfaz:
 
         if self.automata_actual.tipo != "AFN":
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 f"Conversión rechazada: el tipo actual es {self.automata_actual.tipo}, no AFN"
             )
 
@@ -1698,7 +1698,7 @@ class Interfaz:
 
         if self.automata_actual is None:
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 "Se intentó minimizar un AFD sin un autómata cargado"
             )
 
@@ -1712,7 +1712,7 @@ class Interfaz:
 
         if self.automata_actual.tipo != "AFD":
 
-            self.registro_logs.warning(
+            self.registro_logs.advertencia(
                 f"Minimización rechazada: el tipo actual es {self.automata_actual.tipo}, no AFD"
             )
 
