@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+from registro_logs import RegistroLogs
+
 
 class FormularioRegex:
     """Interfaz para validar expresiones regulares y construir un AFN-ε."""
@@ -19,6 +21,8 @@ class FormularioRegex:
         self.al_crear_automata = al_crear_automata
         self.al_mostrar_grafica = al_mostrar_grafica
         self.automata_generado = None
+        self.registro_logs = RegistroLogs()
+        self.registro_logs.info("Abierta ventana de expresiones regulares y Thompson")
 
         self.ventana = tk.Toplevel(padre)
         self.ventana.title("Expresión regular → AFN-ε")
@@ -225,6 +229,9 @@ class FormularioRegex:
     def validar_expresion(self):
         expresion = self.entrada_expresion.get().strip()
         self.salida.delete("1.0", "end")
+        self.registro_logs.info(
+            f"Inicio de validación de expresión regular: {expresion or '(vacía)'}"
+        )
 
         try:
             from procesador_regex import ProcesadorRegex
@@ -239,6 +246,10 @@ class FormularioRegex:
             )
 
             if errores:
+                self.registro_logs.advertencia(
+                    f"Expresión regular inválida: {expresion or '(vacía)'}. "
+                    + " | ".join(errores)
+                )
                 self.salida.insert(
                     "end",
                     "La expresión contiene errores:\n",
@@ -249,6 +260,9 @@ class FormularioRegex:
                 self.salida.see("end")
                 return False
 
+            self.registro_logs.info(
+                f"Expresión regular válida: {expresion}"
+            )
             self.salida.insert(
                 "end",
                 "Resultado: expresión válida.\n",
@@ -272,6 +286,9 @@ class FormularioRegex:
             return True
 
         except Exception as error:
+            self.registro_logs.excepcion(
+                f"Error inesperado al procesar expresión regular: {expresion}"
+            )
             self.salida.insert("end", f"ERROR: {error}\n", "error")
             self.salida.see("end")
             messagebox.showerror(
@@ -283,8 +300,14 @@ class FormularioRegex:
 
     def construir_automata(self):
         expresion = self.entrada_expresion.get().strip()
+        self.registro_logs.info(
+            f"Solicitud de construcción de AFN-ε con Thompson: {expresion or '(vacía)'}"
+        )
 
         if not self.validar_expresion():
+            self.registro_logs.warning(
+                "No se construyó el AFN-ε porque la expresión no pasó la validación"
+            )
             return
 
         try:
@@ -300,6 +323,11 @@ class FormularioRegex:
                 )
 
             self.automata_generado = automata
+            self.registro_logs.info(
+                "AFN-ε construido correctamente mediante Thompson. "
+                f"Expresión: {expresion}; estados: {len(automata.estados)}; "
+                f"transiciones: {len(automata.transiciones)}"
+            )
             self.al_crear_automata(automata)
             self.boton_grafica.configure(state="normal")
 
@@ -356,6 +384,9 @@ class FormularioRegex:
             self.salida.see("end")
 
         except Exception as error:
+            self.registro_logs.excepcion(
+                f"Error al generar AFN-ε con Thompson para expresión: {expresion}"
+            )
             self.salida.insert(
                 "end",
                 f"\nERROR AL GENERAR EL AFN: {error}\n",
@@ -370,8 +401,12 @@ class FormularioRegex:
 
     def mostrar_grafica(self):
         if self.automata_generado is None:
+            self.registro_logs.warning(
+                "Se solicitó mostrar la gráfica sin un AFN-ε generado"
+            )
             return
 
+        self.registro_logs.info("Solicitud para mostrar la gráfica del AFN-ε generado")
         self.cerrar()
         self.al_mostrar_grafica()
 

@@ -52,6 +52,11 @@ class Interfaz:
             bg=self.COLOR_FONDO
         )
 
+        self.ventana.protocol(
+            "WM_DELETE_WINDOW",
+            self.cerrar_aplicacion
+        )
+
         # Registro automático de eventos
         self.registro_logs = RegistroLogs()
         self.registro_logs.info("Aplicación iniciada")
@@ -1020,14 +1025,32 @@ class Interfaz:
             )
 
             if not respuesta:
+                self.registro_logs.info(
+                    "Se canceló la creación de un nuevo autómata"
+                )
                 return
 
-        from formulario import FormularioAutomata
+        try:
+            self.registro_logs.info(
+                "Se abrió el formulario para crear un autómata"
+            )
 
-        FormularioAutomata(
-            self.ventana,
-            self.recibir_automata
-        )
+            from formulario import FormularioAutomata
+
+            FormularioAutomata(
+                self.ventana,
+                self.recibir_automata
+            )
+
+        except Exception as error:
+            self.registro_logs.excepcion(
+                "No se pudo abrir el formulario para crear un autómata"
+            )
+            messagebox.showerror(
+                "Error al crear autómata",
+                str(error),
+                parent=self.ventana
+            )
 
 
     # =====================================================
@@ -1111,6 +1134,10 @@ class Interfaz:
 
         if self.automata_actual is None:
 
+            self.registro_logs.warning(
+                "Se intentó abrir el editor de transiciones sin un autómata cargado"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Primero cree un autómata.",
@@ -1119,12 +1146,27 @@ class Interfaz:
 
             return
 
-        from transiciones import VentanaTransiciones
+        try:
+            self.registro_logs.info(
+                f"Se abrió el editor de transiciones: tipo={self.automata_actual.tipo}"
+            )
 
-        VentanaTransiciones(
-            self.ventana,
-            self.automata_actual
-        )
+            from transiciones import VentanaTransiciones
+
+            VentanaTransiciones(
+                self.ventana,
+                self.automata_actual
+            )
+
+        except Exception as error:
+            self.registro_logs.excepcion(
+                "No se pudo abrir el editor de transiciones"
+            )
+            messagebox.showerror(
+                "Error de transiciones",
+                str(error),
+                parent=self.ventana
+            )
 
 
     # =====================================================
@@ -1285,6 +1327,10 @@ class Interfaz:
 
         if self.automata_actual is None:
 
+            self.registro_logs.warning(
+                "Se intentó visualizar un autómata sin tener uno cargado"
+            )
+
             messagebox.showwarning(
                 "Advertencia",
                 "Primero cree un autómata.",
@@ -1293,12 +1339,28 @@ class Interfaz:
 
             return
 
-        from dibujador import DibujadorAutomata
+        try:
+            self.registro_logs.info(
+                f"Se solicitó visualizar el autómata: tipo={self.automata_actual.tipo}, "
+                f"estados={len(self.automata_actual.estados)}"
+            )
 
-        DibujadorAutomata(
-            self.ventana,
-            self.automata_actual
-        )
+            from dibujador import DibujadorAutomata
+
+            DibujadorAutomata(
+                self.ventana,
+                self.automata_actual
+            )
+
+        except Exception as error:
+            self.registro_logs.excepcion(
+                "No se pudo visualizar el autómata"
+            )
+            messagebox.showerror(
+                "Error al mostrar autómata",
+                str(error),
+                parent=self.ventana
+            )
 
 
     # =====================================================
@@ -1979,6 +2041,8 @@ class Interfaz:
 
     def limpiar_panel(self):
 
+        self.registro_logs.info("Se limpió el panel de resultados")
+
         self.area_texto.delete(
             "1.0",
             "end"
@@ -2000,6 +2064,18 @@ class Interfaz:
                 ),
                 "secundario"
             )
+
+
+    # =====================================================
+    # CERRAR APLICACIÓN
+    # =====================================================
+
+    def cerrar_aplicacion(self):
+
+        try:
+            self.registro_logs.info("Aplicación cerrada por el usuario")
+        finally:
+            self.ventana.destroy()
 
 
     # =====================================================
