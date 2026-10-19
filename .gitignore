@@ -25,3 +25,6 @@ dist/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+
+# Registros generados durante la ejecucion
+logs/
